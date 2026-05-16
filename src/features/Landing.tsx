@@ -130,6 +130,13 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                 {item}
               </a>
             ))}
+            <button
+              onClick={onEnter}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-2 bg-primary text-white border-2 border-on-surface dark:border-[#a8a6ff] font-mono text-xs font-bold shadow-hard-sm min-h-[44px]"
+            >
+              <Zap size={14} />
+              &gt; ENTER LABSYUSJUL
+            </button>
           </div>
         )}
       </header>
