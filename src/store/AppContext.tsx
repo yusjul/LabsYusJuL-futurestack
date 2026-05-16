@@ -2,7 +2,7 @@
 import type { Theme, ConnectionStatus, Toast, ActivePage, UserSettings, NotificationEntry, Project, Task, Note } from '../types';
 import { getSettings, saveSettings } from '../database/db';
 import * as syncEngine from '../database/sync';
-import { supabase, signIn as supabaseSignIn, signUp as supabaseSignUp, signOut as supabaseSignOut } from '../database/supabase';
+import { supabase, signInWithGoogle as supabaseSignInWithGoogle, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, resetPasswordForEmail as supabaseResetPasswordForEmail, signOut as supabaseSignOut } from '../database/supabase';
 import type { User } from '@supabase/supabase-js';
 
 type SyncStatusValue = 'idle' | 'syncing' | 'success' | 'error';
@@ -23,6 +23,8 @@ interface AppState {
   syncStatus: SyncStatusValue;
   syncResult: syncEngine.SyncResult | null;
   isAuthenticated: boolean;
+  dataVersion: number;
+  authReady: boolean;
 }
 
 interface AppActions {
@@ -37,8 +39,10 @@ interface AppActions {
   updateSettings: (settings: Partial<UserSettings>) => void;
   showSaved: () => void;
   clearNotifications: () => void;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
   pushProjectAfterSave: (project: Project) => Promise<void>;
@@ -84,6 +88,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatusValue>('idle');
   const [syncResult, setSyncResult] = useState<syncEngine.SyncResult | null>(null);
+  const [dataVersion, setDataVersion] = useState(0);
+  const [authReady, setAuthReady] = useState(false);
 
   // Load settings from DB on mount
   useEffect(() => {
@@ -112,14 +118,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Supabase auth recovery on mount
   useEffect(() => {
-    if (!hasSupabaseCreds) return;
+    if (!hasSupabaseCreds) { setAuthReady(true); return; }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
         syncNow();
       }
-    });
+    }).finally(() => setAuthReady(true));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
@@ -141,6 +147,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       syncNow();
     }
   }, [connectionStatus]);
+
+  // Realtime subscription — react to remote changes
+  const handleRemoteChange = useCallback(async () => {
+    if (!user) return;
+    setSyncStatus('syncing');
+    setConnectionStatus('sync-pending');
+    const result = await syncEngine.fullSync();
+    setSyncResult(result);
+    setDataVersion(v => v + 1);
+    if (result.error || result.projects.errors.length > 0 || result.tasks.errors.length > 0 || result.notes.errors.length > 0) {
+      setSyncStatus('error');
+      setConnectionStatus('offline');
+    } else {
+      setSyncStatus('success');
+      setConnectionStatus('online');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) { syncEngine.unsubscribeAll(); return; }
+    syncEngine.subscribeToChanges(handleRemoteChange);
+    return () => syncEngine.unsubscribeAll();
+  }, [user, handleRemoteChange]);
+
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => handleRemoteChange(), 30000);
+    return () => clearInterval(interval);
+  }, [user, handleRemoteChange]);
 
 const ACCENT_PALETTES: Record<string, { light: Record<string, string>; dark: Record<string, string> }> = {
   violet: {
@@ -244,12 +279,23 @@ function applyAccent(accent: string) {
     }
   }, [user]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    await supabaseSignIn(email, password);
+  const signInWithGoogle = useCallback(async () => {
+    await supabaseSignInWithGoogle();
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    await supabaseSignUp(email, password);
+  const signInWithEmail = useCallback(async (email: string, password: string) => {
+    await supabaseSignInWithEmail(email, password);
+  }, []);
+
+  const signUpWithEmail = useCallback(async (email: string, password: string) => {
+    const result = await supabaseSignUpWithEmail(email, password);
+    if (result?.user && !result.session) {
+      throw new Error('Please check your email for a confirmation link.');
+    }
+  }, []);
+
+  const resetPasswordForEmail = useCallback(async (email: string) => {
+    await supabaseResetPasswordForEmail(email);
   }, []);
 
   const signOutAction = useCallback(async () => {
@@ -315,10 +361,10 @@ function applyAccent(accent: string) {
 
   const value: AppContextValue = {
     theme, connectionStatus, toasts, activePage, sidebarOpen, settings, autoSaveLabel, notificationLog,
-    user, syncStatus, syncResult, isAuthenticated: !!user,
+    user, syncStatus, syncResult, isAuthenticated: !!user, dataVersion, authReady,
     setTheme, toggleTheme, setConnectionStatus, addToast, removeToast,
     setActivePage, setSidebarOpen, toggleSidebar, updateSettings, showSaved, clearNotifications,
-    signIn, signUp, signOut: signOutAction, syncNow,
+    signInWithGoogle, signInWithEmail, signUpWithEmail, resetPasswordForEmail, signOut: signOutAction, syncNow,
     pushProjectAfterSave, deleteRemoteProject,
     pushTaskAfterSave, deleteRemoteTask,
     pushNoteAfterSave, deleteRemoteNote,

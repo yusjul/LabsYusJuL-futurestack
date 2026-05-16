@@ -9,7 +9,11 @@ import { KanbanPage } from './features/Kanban';
 import { NotesPage } from './features/Notes';
 import { AnalyticsPage } from './features/Analytics';
 import { SettingsPage } from './features/Settings';
+import { LoginPage } from './features/LoginPage';
+import { RegisterPage } from './features/RegisterPage';
+import { ForgotPassword } from './features/ForgotPassword';
 import { LandingPage } from './features/Landing';
+import { CookieConsent } from './components/CookieConsent';
 import { seedDatabase } from './database/db';
 import './index.css';
 
@@ -78,8 +82,11 @@ function AppShell({ onGoToLanding }: AppShellProps) {
 // ROOT APP
 // ============================================
 function AppInner() {
+  const { isAuthenticated, authReady } = useApp();
   const [dbReady, setDbReady] = useState(false);
   const [onLanding, setOnLanding] = useState(true);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   useEffect(() => {
     seedDatabase()
@@ -90,12 +97,14 @@ function AppInner() {
       });
   }, []);
 
-  if (!dbReady) {
+  if (!dbReady || !authReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background dark:bg-[#12121a]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-2 border-primary dark:border-[var(--color-primary-fixed-dim-dark)] border-t-transparent rounded-full animate-spin" />
-          <p className="font-mono text-label-mono text-on-surface-variant dark:text-[#777584]">Initializing FutureStack...</p>
+          <p className="font-mono text-label-mono text-on-surface-variant dark:text-[#777584]">
+            {!dbReady ? 'Initializing FutureStack...' : 'Checking session...'}
+          </p>
         </div>
       </div>
     );
@@ -105,6 +114,16 @@ function AppInner() {
     return <LandingPage onEnter={() => setOnLanding(false)} />;
   }
 
+  if (!isAuthenticated) {
+    if (showForgotPassword) {
+      return <ForgotPassword onBackToLogin={() => setShowForgotPassword(false)} />;
+    }
+    if (showRegister) {
+      return <RegisterPage onSwitchToLogin={() => setShowRegister(false)} />;
+    }
+    return <LoginPage onSwitchToRegister={() => setShowRegister(true)} onSwitchToForgotPassword={() => setShowForgotPassword(true)} />;
+  }
+
   return <AppShell onGoToLanding={() => setOnLanding(true)} />;
 }
 
@@ -112,6 +131,7 @@ export default function App() {
   return (
     <AppProvider>
       <AppInner />
+      <CookieConsent />
     </AppProvider>
   );
 }

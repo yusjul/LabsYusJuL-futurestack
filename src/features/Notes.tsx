@@ -114,7 +114,7 @@ function MarkdownView({ content }: { content: string }) {
 // NOTES PAGE
 // ============================================
 export function NotesPage() {
-  const { addToast, showSaved } = useApp();
+  const { addToast, showSaved, dataVersion } = useApp();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
@@ -137,7 +137,7 @@ export function NotesPage() {
       if (sorted.length > 0) setActiveNote(sorted[0]);
       setLoading(false);
     });
-  }, []);
+  }, [dataVersion]);
 
   const filteredNotes = notes.filter(n =>
     n.title.toLowerCase().includes(search.toLowerCase()) ||

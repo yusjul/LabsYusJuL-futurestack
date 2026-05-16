@@ -1,8 +1,8 @@
 ﻿import { useState, useEffect } from 'react';
 import { Plus, Search, Folder, Archive, FileEdit, Tag, Trash2, MoreVertical } from 'lucide-react';
 import { useApp } from '../store/AppContext';
-import { getAllProjects, saveProject, deleteProject } from '../database/db';
-import type { Project, ProjectStatus } from '../types';
+import { getAllProjects, getAllTasks, saveProject, deleteProject } from '../database/db';
+import type { Project, ProjectStatus, Task } from '../types';
 import { Button } from '../components/Button';
 import { Input, Select } from '../components/FormControls';
 import { Modal } from '../components/Overlays';
@@ -45,12 +45,16 @@ const priorityBadge: Record<string, string> = {
 // ============================================
 // PROJECT CARD
 // ============================================
-function ProjectCard({ project, onEdit, onDelete }: {
+function ProjectCard({ project, onEdit, onDelete, taskStats }: {
   project: Project;
   onEdit: (p: Project) => void;
   onDelete: (id: string) => void;
+  taskStats?: { total: number; done: number };
 }) {
   const colors = colorMap[project.color] || colorMap.violet;
+  const total = taskStats?.total ?? project.taskCount;
+  const done = taskStats?.done ?? project.completedTasks;
+  const progress = total > 0 ? Math.round((done / total) * 100) : project.progress;
 
   return (
     <article
@@ -108,20 +112,20 @@ function ProjectCard({ project, onEdit, onDelete }: {
       <div>
         <div className="flex justify-between items-center mb-1">
           <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Progress</span>
-          <span className="font-mono text-xs font-bold text-on-surface dark:text-[#e5e1ea]">{project.progress}%</span>
+          <span className="font-mono text-xs font-bold text-on-surface dark:text-[#e5e1ea]">{progress}%</span>
         </div>
         <div className="w-full h-2 bg-surface-container dark:bg-[#252533] border border-on-surface/30 dark:border-[#464552]">
           <div
             className="h-full bg-primary dark:bg-[var(--color-primary-fixed-dim-dark)] transition-all duration-500"
-            style={{ width: `${project.progress}%` }}
+            style={{ width: `${progress}%` }}
             role="progressbar"
-            aria-valuenow={project.progress}
+            aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
           />
         </div>
         <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mt-1">
-          {project.completedTasks}/{project.taskCount} tasks
+          {done}/{total} tasks
         </p>
       </div>
 
@@ -281,8 +285,9 @@ function ProjectModal({ open, project, onClose, onSave }: {
 // PROJECTS PAGE
 // ============================================
 export function ProjectsPage() {
-  const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject } = useApp();
+  const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject, dataVersion } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -290,8 +295,10 @@ export function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   useEffect(() => {
-    getAllProjects().then(p => { setProjects(p); setLoading(false); });
-  }, []);
+    Promise.all([getAllProjects(), getAllTasks()]).then(([p, t]) => {
+      setProjects(p); setTasks(t); setLoading(false);
+    });
+  }, [dataVersion]);
 
   const filtered = projects.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -299,6 +306,13 @@ export function ProjectsPage() {
     const matchStatus = filterStatus === 'all' || p.status === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  const taskStatsMap = new Map<string, { total: number; done: number }>();
+  for (const t of tasks) {
+    if (!t.projectId) continue;
+    const prev = taskStatsMap.get(t.projectId) ?? { total: 0, done: 0 };
+    taskStatsMap.set(t.projectId, { total: prev.total + 1, done: prev.done + (t.status === 'done' ? 1 : 0) });
+  }
 
   async function handleSave(project: Project) {
     await saveProject(project);
@@ -392,7 +406,7 @@ export function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
           {filtered.map(project => (
-            <ProjectCard key={project.id} project={project} onEdit={handleEdit} onDelete={handleDelete} />
+            <ProjectCard key={project.id} project={project} onEdit={handleEdit} onDelete={handleDelete} taskStats={taskStatsMap.get(project.id)} />
           ))}
         </div>
       )}

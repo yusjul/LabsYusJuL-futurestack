@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import { Menu, Sun, Moon, Bell, Search, Plus, Zap, Wifi, WifiOff, RefreshCw, Columns3, FolderKanban, FileText, CheckCircle, AlertCircle, Info, AlertTriangle, Trash2, CloudOff } from 'lucide-react';
+import { Menu, Sun, Moon, Bell, Search, Plus, Zap, Wifi, WifiOff, RefreshCw, Columns3, FolderKanban, FileText, CheckCircle, AlertCircle, Info, AlertTriangle, Trash2 } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { Modal } from './Overlays';
 import { Dropdown } from './Navigation';
@@ -173,7 +173,7 @@ function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => v
 }
 
 export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
-  const { theme, toggleTheme, connectionStatus, activePage, autoSaveLabel, addToast, setActivePage, notificationLog, user, isAuthenticated } = useApp();
+  const { theme, toggleTheme, connectionStatus, activePage, autoSaveLabel, addToast, setActivePage, notificationLog, user } = useApp();
   const conn = connectionConfig[connectionStatus];
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -321,16 +321,13 @@ export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
         {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
       </button>
 
-      {/* Avatar / Sync status — desktop only */}
+      {/* Avatar — desktop only */}
       <button
-        aria-label={isAuthenticated ? 'User menu' : 'Sign in to sync'}
+        aria-label="User menu"
         onClick={() => setActivePage('settings')}
-        className={[
-          'hidden md:flex w-9 h-9 border-2 border-on-surface dark:border-[#a8a6ff] items-center justify-center font-mono text-xs font-bold shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#a8a6ff] hover:-translate-y-0.5 hover:shadow-hard dark:hover:shadow-[4px_4px_0px_0px_#a8a6ff] transition-all duration-150',
-          isAuthenticated ? 'bg-primary-container dark:bg-[var(--color-primary-container-dark)] text-on-primary-container dark:text-white' : 'bg-surface dark:bg-[#1e1e2a] text-on-surface-variant dark:text-[#777584]',
-        ].join(' ')}
+        className="hidden md:flex w-9 h-9 bg-primary-container dark:bg-[var(--color-primary-container-dark)] border-2 border-on-surface dark:border-[#a8a6ff] items-center justify-center font-mono text-xs font-bold text-on-primary-container dark:text-white shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#a8a6ff] hover:-translate-y-0.5 hover:shadow-hard dark:hover:shadow-[4px_4px_0px_0px_#a8a6ff] transition-all duration-150"
       >
-        {isAuthenticated ? (user?.email?.charAt(0).toUpperCase() ?? '?') : <CloudOff size={14} />}
+        {user?.email?.charAt(0).toUpperCase() ?? '?'}
       </button>
 
       {/* Search Modal */}

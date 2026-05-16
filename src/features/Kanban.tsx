@@ -1,8 +1,8 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import { Plus, GripVertical, MoreHorizontal, Tag, CalendarDays, AlertCircle, Trash2, Edit3 } from 'lucide-react';
+import { Plus, GripVertical, MoreHorizontal, Tag, CalendarDays, AlertCircle, Trash2, Edit3, FolderKanban } from 'lucide-react';
 import { useApp } from '../store/AppContext';
-import { getAllTasks, saveTask, deleteTask } from '../database/db';
-import type { Task, TaskStatus } from '../types';
+import { getAllTasks, getAllProjects, saveTask, deleteTask } from '../database/db';
+import type { Task, TaskStatus, Project } from '../types';
 import { Button } from '../components/Button';
 import { Input, Select } from '../components/FormControls';
 import { Modal } from '../components/Overlays';
@@ -260,7 +260,7 @@ function KanbanCol({ col, tasks, onEdit, onDelete, onMove, onAdd, onDropTask, dr
 const defaultTask = {
   title: '', description: '', status: 'todo' as TaskStatus,
   priority: 'medium' as Task['priority'], tags: '', dueDate: '',
-  projectId: 'proj-1',
+  projectId: '',
 };
 
 function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
@@ -271,6 +271,11 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
   onSave: (t: Task) => void;
 }) {
   const [form, setForm] = useState({ ...defaultTask });
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    getAllProjects().then(setProjects);
+  }, []);
 
   useEffect(() => {
     if (task) {
@@ -326,6 +331,15 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
           <Select label="Status" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as TaskStatus }))} options={columns.map(c => ({ value: c.id, label: c.label }))} />
           <Select label="Priority" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as Task['priority'] }))} options={[{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'critical', label: 'Critical' }]} />
         </div>
+        <Select
+          label="Project"
+          value={form.projectId}
+          onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))}
+          options={[
+            { value: '', label: '— No project —' },
+            ...projects.map(p => ({ value: p.id, label: p.name })),
+          ]}
+        />
         <div className="grid grid-cols-2 gap-4">
           <Input label="Tags (comma separated)" value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} placeholder="ui, bug, feat" />
           <Input label="Due Date" type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} />
@@ -339,7 +353,7 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
 // KANBAN PAGE
 // ============================================
 export function KanbanPage() {
-  const { addToast, showSaved } = useApp();
+  const { addToast, showSaved, dataVersion } = useApp();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -350,7 +364,7 @@ export function KanbanPage() {
 
   useEffect(() => {
     getAllTasks().then(t => { setTasks(t); setLoading(false); });
-  }, []);
+  }, [dataVersion]);
 
   function getColumnTasks(status: TaskStatus) {
     return tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);

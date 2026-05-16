@@ -167,3 +167,40 @@ export async function deleteRemoteNote(id: string): Promise<void> {
   if (!user) return;
   await supabase.from('notes').delete().eq('id', id).eq('user_id', user.id);
 }
+
+// ============================================
+// REALTIME SUBSCRIPTION
+// ============================================
+type Unsubscribe = () => void;
+let activeSubscriptions: Unsubscribe[] = [];
+
+const hasSupabaseCreds = Boolean(
+  typeof import.meta !== 'undefined' &&
+  import.meta.env &&
+  import.meta.env.VITE_SUPABASE_URL &&
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+export function subscribeToChanges(onRemoteChange: () => void): void {
+  if (!hasSupabaseCreds) return;
+  unsubscribeAll();
+
+  const tables = ['projects', 'tasks', 'notes'] as const;
+  for (const table of tables) {
+    const channel = supabase
+      .channel(`public:${table}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+        onRemoteChange();
+      })
+      .subscribe();
+
+    activeSubscriptions.push(() => { channel.unsubscribe(); });
+  }
+}
+
+export function unsubscribeAll(): void {
+  for (const fn of activeSubscriptions) {
+    try { fn(); } catch { /* ignore */ }
+  }
+  activeSubscriptions = [];
+}

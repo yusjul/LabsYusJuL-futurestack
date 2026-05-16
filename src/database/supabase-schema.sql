@@ -76,3 +76,11 @@ CREATE POLICY "Users can CRUD own notes"
   WITH CHECK (auth.uid() = user_id);
 
 CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
+
+-- ============================================
+-- ENABLE REALTIME (untuk auto-sync antar device)
+-- Jalankan terpisah jika tabel sudah ada:
+-- ============================================
+ALTER PUBLICATION supabase_realtime ADD TABLE projects;
+ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
+ALTER PUBLICATION supabase_realtime ADD TABLE notes;

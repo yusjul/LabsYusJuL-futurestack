@@ -119,7 +119,7 @@ export interface Toast {
   duration?: number;
 }
 
-export type ActivePage = 'dashboard' | 'projects' | 'kanban' | 'notes' | 'analytics' | 'settings';
+export type ActivePage = 'dashboard' | 'projects' | 'kanban' | 'notes' | 'analytics' | 'settings' | 'login';
 
 export interface NotificationEntry {
   id: string;
