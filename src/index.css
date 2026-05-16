@@ -1,0 +1,704 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   ACCENT COLOR CSS VARIABLES (Violet default)
+   ============================================ */
+:root {
+  --color-primary-light: #2f3eff;
+  --color-primary-dim-light: #1929d8;
+  --color-primary-container-light: #8690ff;
+  --color-on-primary-light: #ffffff;
+  --color-on-primary-container-light: #000daa;
+  --color-primary-fixed-light: #e0e0ff;
+  --color-primary-fixed-dim-light: #918efa;
+  --color-primary-dark: #5b66ff;
+  --color-primary-dim-dark: #4a55ee;
+  --color-primary-container-dark: #0015e6;
+  --color-on-primary-dark: #ffffff;
+  --color-on-primary-container-dark: #ffffff;
+  --color-primary-fixed-dark: #e0e0ff;
+  --color-primary-fixed-dim-dark: #bec2ff;
+}
+
+.dark {
+  --color-primary-light: #2f3eff;
+  --color-primary-dim-light: #1929d8;
+  --color-primary-container-light: #8690ff;
+  --color-on-primary-light: #ffffff;
+  --color-on-primary-container-light: #000daa;
+  --color-primary-fixed-light: #e0e0ff;
+  --color-primary-fixed-dim-light: #918efa;
+  --color-primary-dark: #5b66ff;
+  --color-primary-dim-dark: #4a55ee;
+  --color-primary-container-dark: #0015e6;
+  --color-on-primary-dark: #ffffff;
+  --color-on-primary-container-dark: #ffffff;
+  --color-primary-fixed-dark: #e0e0ff;
+  --color-primary-fixed-dim-dark: #bec2ff;
+}
+
+/* ============================================
+   BASE RESETS & GLOBALS
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @apply bg-background text-on-surface;
+}
+
+.dark body {
+  background: #12121a;
+  color: #e5e1ea;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   HARD SHADOW SYSTEM (Neo-Brutalism)
+   ============================================ */
+@layer utilities {
+  .shadow-hard {
+    box-shadow: 4px 4px 0px 0px #1b1b22;
+  }
+  .shadow-hard-sm {
+    box-shadow: 2px 2px 0px 0px #1b1b22;
+  }
+  .shadow-hard-lg {
+    box-shadow: 8px 8px 0px 0px #1b1b22;
+  }
+  .shadow-hard-pressed {
+    box-shadow: 0px 0px 0px 0px #1b1b22;
+  }
+  .shadow-card-violet { box-shadow: 6px 6px 0px 0px #918efa; }
+  .shadow-card-cyan   { box-shadow: 6px 6px 0px 0px #06b6d4; }
+  .shadow-card-lime   { box-shadow: 6px 6px 0px 0px #84cc16; }
+  .shadow-card-yellow { box-shadow: 6px 6px 0px 0px #eab308; }
+  .shadow-hard-violet { box-shadow: 4px 4px 0px 0px #918efa; }
+  .shadow-hard-red    { box-shadow: 4px 4px 0px 0px #fa7a7a; }
+
+  /* Dark mode hard shadows */
+  .dark .shadow-hard    { box-shadow: 4px 4px 0px 0px #a8a6ff; }
+  .dark .shadow-hard-sm { box-shadow: 2px 2px 0px 0px #a8a6ff; }
+  .dark .shadow-hard-lg { box-shadow: 8px 8px 0px 0px #a8a6ff; }
+  .dark .shadow-hard-pressed { box-shadow: 0px 0px 0px 0px #a8a6ff; }
+
+  /* Dot grid background */
+  .dot-grid {
+    background-image: radial-gradient(#1b1b22 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .dark .dot-grid {
+    background-image: radial-gradient(#a8a6ff40 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Brutalist focus */
+  .focus-brutal:focus-visible {
+    outline: none;
+    border-color: #918efa !important;
+    box-shadow: 3px 3px 0px 0px #918efa !important;
+  }
+}
+
+/* ============================================
+   BUTTON INTERACTIONS
+   ============================================ */
+.btn-brutal {
+  @apply border-2 border-on-surface font-mono text-label-mono;
+  @apply transition-all duration-150 ease-in-out;
+  @apply shadow-hard;
+  @apply active:shadow-hard-pressed active:translate-x-1 active:translate-y-1;
+  @apply hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-hard-lg;
+  @apply focus-visible:outline-none focus-visible:ring-0;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ============================================
+   SKELETON SHIMMER
+   ============================================ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e5e1ea 25%,
+    #f0ecf6 50%,
+    #e5e1ea 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #252533 25%,
+    #2f2f42 50%,
+    #252533 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ============================================
+   MARQUEE
+   ============================================ */
+.marquee-track {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 25s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ============================================
+   KANBAN SWIPE SCROLL
+   ============================================ */
+.kanban-board {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 1rem;
+}
+
+.kanban-board::-webkit-scrollbar {
+  height: 6px;
+}
+.kanban-board::-webkit-scrollbar-track {
+  background: #f0ecf6;
+}
+.kanban-board::-webkit-scrollbar-thumb {
+  background: #918efa;
+  border-radius: 3px;
+}
+
+.kanban-col {
+  min-width: 280px;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   DRAWER TRANSITIONS
+   ============================================ */
+.drawer-overlay {
+  animation: fadeIn 200ms ease-out;
+}
+
+.drawer-panel {
+  animation: slideInRight 200ms ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.drawer-panel-left {
+  animation: slideInLeft 200ms ease-out;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================
+   MODAL TRANSITIONS
+   ============================================ */
+.modal-backdrop {
+  animation: fadeIn 150ms ease-out;
+}
+
+.modal-panel {
+  animation: pop 200ms ease-out;
+}
+
+@keyframes pop {
+  from { transform: scale(0.94); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ============================================
+   TOAST SLIDE-IN
+   ============================================ */
+.toast-enter {
+  animation: toastSlideIn 250ms ease-out;
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ============================================
+   TAB UNDERLINE ANIMATION
+   ============================================ */
+.tab-underline {
+  position: relative;
+}
+.tab-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform 150ms ease-out;
+  transform-origin: left;
+}
+.tab-underline.active::after {
+  transform: scaleX(1);
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f0ecf6;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8c4d4;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #918fa0;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #1e1e2a;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #464552;
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+.font-display { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.font-headline { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+.font-mono { font-family: 'JetBrains Mono', Consolas, monospace; }
+
+/* ============================================
+   DARK MODE SURFACE UTILITIES
+   ============================================ */
+.dark .bg-surface { background: #12121a; }
+.dark .bg-surface-container { background: #1e1e2a; }
+.dark .bg-surface-container-high { background: #252533; }
+.dark .bg-surface-container-highest { background: #2e2e3f; }
+.dark .bg-surface-container-low { background: #191926; }
+.dark .bg-surface-variant { background: #252533; }
+.dark .bg-background { background: #12121a; }
+.dark .text-on-surface { color: #e5e1ea; }
+.dark .text-on-surface-variant { color: #777584; }
+.dark .border-on-surface { border-color: #a8a6ff; }
+
+/* ============================================
+   PRINT STYLES — PDF Export Report
+   ============================================ */
+.print-only { display: none; }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 15mm;
+  }
+
+  *, *::before, *::after {
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: #1b1b22 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #topbar, [class*="sidebar"]:not([class*="sidebar-content"]),
+  nav:not(.print-cover), header, footer, .toast-container,
+  .drawer-overlay, .drawer-panel, .modal-backdrop, .modal-panel,
+  .kanban-board, canvas, .skeleton, .dot-grid,
+  [role="alert"], img:not([src*="logo"]), svg:not(.print-icon) {
+    display: none !important;
+  }
+
+  button, [role="button"], .btn-brutal, .cursor-pointer {
+    display: none !important;
+  }
+
+  .flex-1.px-4 {
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  section, article, div, .print-sec {
+    break-inside: avoid;
+  }
+
+  .print-cover {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 90vh;
+    page-break-after: always;
+    padding: 50mm 20mm;
+  }
+
+  .print-cover h1 {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 38pt !important;
+    font-weight: 700 !important;
+    color: #1b1b22 !important;
+    margin: 0 0 10pt !important;
+    letter-spacing: -1pt;
+    line-height: 1;
+  }
+
+  .print-cover .subtitle {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10pt !important;
+    color: #666 !important;
+    margin-bottom: 28pt !important;
+    text-transform: uppercase;
+    letter-spacing: 3pt;
+  }
+
+  .print-cover .divider {
+    width: 50mm;
+    height: 2px;
+    background: #1b1b22 !important;
+    margin: 0 auto 28pt;
+  }
+
+  .print-cover .date {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 9pt !important;
+    color: #888 !important;
+    margin-bottom: 4pt;
+  }
+
+  .print-cover .version {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 8pt !important;
+    color: #aaa !important;
+  }
+
+  .print-cover .stats-summary {
+    display: flex !important;
+    gap: 24pt;
+    justify-content: center;
+    margin-top: 32pt;
+    flex-wrap: wrap;
+  }
+
+  .print-cover .stat-item { text-align: center; }
+
+  .print-cover .stat-item .num {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 22pt !important;
+    font-weight: 700 !important;
+    color: #1b1b22 !important;
+  }
+
+  .print-cover .stat-item .lbl {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 7pt !important;
+    color: #888 !important;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    margin-top: 2pt;
+  }
+
+  .print-sec-title {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 18pt !important;
+    font-weight: 700 !important;
+    color: #1b1b22 !important;
+    border-bottom: 3px solid #1b1b22 !important;
+    padding-bottom: 4pt;
+    margin: 0 0 8pt;
+  }
+
+  .print-sec-desc {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 9pt !important;
+    color: #666 !important;
+    margin-bottom: 10pt;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 8pt;
+    margin-bottom: 16pt;
+  }
+
+  .print-table th {
+    background: #1b1b22 !important;
+    color: white !important;
+    padding: 5pt 7pt;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6.5pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+
+  .print-table td {
+    padding: 4pt 7pt;
+    border-bottom: 1px solid #ddd !important;
+    color: #1b1b22 !important;
+  }
+
+  .print-table tr:nth-child(even) td {
+    background: #f8f8f8 !important;
+  }
+
+  .print-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6pt;
+    padding: 1pt 4pt;
+    border: 1px solid #ccc !important;
+    color: #666 !important;
+    margin: 1pt;
+  }
+
+  .print-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6pt;
+    padding: 1pt 5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    border: 1px solid currentColor !important;
+  }
+
+  .print-badge-active { color: #2f3eff !important; border-color: #2f3eff !important; }
+  .print-badge-archived { color: #888 !important; border-color: #888 !important; }
+  .print-badge-draft { color: #eab308 !important; border-color: #eab308 !important; }
+  .print-badge-in-progress { color: #06b6d4 !important; border-color: #06b6d4 !important; }
+  .print-badge-done { color: #84cc16 !important; border-color: #84cc16 !important; }
+  .print-badge-critical { color: #fa7a7a !important; border-color: #fa7a7a !important; }
+  .print-badge-high { color: #eab308 !important; border-color: #eab308 !important; }
+  .print-badge-medium { color: #06b6d4 !important; border-color: #06b6d4 !important; }
+  .print-badge-low { color: #84cc16 !important; border-color: #84cc16 !important; }
+  .print-badge-backlog { color: #aaa !important; border-color: #aaa !important; }
+  .print-badge-review { color: #eab308 !important; border-color: #eab308 !important; }
+  .print-badge-todo { color: #2f3eff !important; border-color: #2f3eff !important; }
+
+  .print-progress-bar {
+    width: 100%;
+    height: 7pt;
+    background: #eee !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .print-progress-fill {
+    height: 100%;
+    background: #2f3eff !important;
+    display: block;
+  }
+
+  .print-progress-text {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 7pt;
+    color: #555 !important;
+    text-align: right;
+    margin-top: 2pt;
+  }
+
+  .print-notes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8pt;
+  }
+
+  .print-note {
+    border: 1px solid #ddd !important;
+    padding: 8pt 10pt;
+    break-inside: avoid;
+  }
+
+  .print-note h3 {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 10pt !important;
+    font-weight: 600 !important;
+    color: #1b1b22 !important;
+    margin: 0 0 3pt;
+  }
+
+  .print-note p {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 7.5pt !important;
+    color: #555 !important;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .print-note .pinned-mark {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6pt;
+    color: #eab308;
+    margin-top: 4pt;
+  }
+
+  .print-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8pt;
+    margin-bottom: 16pt;
+  }
+
+  .print-summary-item {
+    border: 2px solid #1b1b22 !important;
+    padding: 8pt;
+    text-align: center;
+  }
+
+  .print-summary-item .value {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 22pt !important;
+    font-weight: 700 !important;
+    color: #1b1b22 !important;
+  }
+
+  .print-summary-item .label {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: #888 !important;
+    margin-top: 2pt;
+  }
+
+  .print-pipeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8pt;
+    margin-bottom: 16pt;
+  }
+
+  .print-pipeline-item {
+    text-align: center;
+    padding: 8pt;
+    border: 1px solid #ddd !important;
+  }
+
+  .print-pipeline-item .count {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 18pt !important;
+    font-weight: 700 !important;
+    color: #1b1b22 !important;
+  }
+
+  .print-pipeline-item .label {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: #888 !important;
+  }
+
+  .print-activity {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-activity li {
+    padding: 3pt 0;
+    border-bottom: 1px solid #eee !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 8pt;
+    color: #1b1b22 !important;
+  }
+
+  .print-activity .type-tag {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 6pt;
+    color: #888 !important;
+    margin-left: 4pt;
+  }
+
+  h1, h2, h3, h4 { break-after: avoid; }
+  .page-break { page-break-before: always; }
+  .print-only { display: block !important; }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 7pt;
+    color: #aaa;
+    border-top: 1px solid #eee;
+    padding: 4pt 15mm 0;
+  }
+
+  .print-footer .page-number:after {
+    content: counter(page);
+  }
+}
