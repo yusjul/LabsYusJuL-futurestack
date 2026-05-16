@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import { Plus, GripVertical, MoreHorizontal, Tag, CalendarDays, AlertCircle, Trash2, Edit3, FolderKanban } from 'lucide-react';
+import { Plus, GripVertical, MoreHorizontal, Tag, CalendarDays, AlertCircle, Trash2, Edit3 } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { getAllTasks, getAllProjects, saveTask, deleteTask } from '../database/db';
 import type { Task, TaskStatus, Project } from '../types';
