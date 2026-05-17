@@ -1,7 +1,8 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, GripVertical, MoreHorizontal, Tag, CalendarDays, AlertCircle, Trash2, Edit3 } from 'lucide-react';
 import { useApp } from '../store/AppContext';
-import { getAllTasks, getAllProjects, saveTask, deleteTask } from '../database/db';
+import { getAllTasks, getAllProjects, saveTask, saveProject, deleteTask } from '../database/db';
+import { addTombstone } from '../database/sync';
 import type { Task, TaskStatus, Project } from '../types';
 import { Button } from '../components/Button';
 import { Input, Select } from '../components/FormControls';
@@ -30,8 +31,9 @@ const priorityConfig: Record<Task['priority'], { color: string; icon: typeof Ale
 // ============================================
 // TASK CARD
 // ============================================
-function TaskCard({ task, onEdit, onDelete, onMove, isDragging, onDragStart, onDragEnd }: {
+function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onDragStart, onDragEnd }: {
   task: Task;
+  projectName?: string;
   onEdit: (t: Task) => void;
   onDelete: (id: string) => void;
   onMove: (id: string, status: TaskStatus) => void;
@@ -115,6 +117,11 @@ function TaskCard({ task, onEdit, onDelete, onMove, isDragging, onDragStart, onD
               {PrioIcon && <PrioIcon size={10} />}
               {task.priority.toUpperCase()}
             </span>
+            {projectName && (
+              <span className="font-mono text-[10px] px-1.5 py-0.5 bg-primary/10 dark:bg-[var(--color-primary-fixed-dim-dark)]/20 border border-primary/30 dark:border-[var(--color-primary-fixed-dim-dark)]/40 text-primary dark:text-[var(--color-primary-fixed-dim-dark)] truncate max-w-[90px]" title={projectName}>
+                📁 {projectName}
+              </span>
+            )}
             {task.dueDate && (
               <span className="flex items-center gap-1 font-mono text-[10px] text-on-surface-variant dark:text-[#777584]">
                 <CalendarDays size={10} />
@@ -131,9 +138,10 @@ function TaskCard({ task, onEdit, onDelete, onMove, isDragging, onDragStart, onD
 // ============================================
 // KANBAN COLUMN
 // ============================================
-function KanbanCol({ col, tasks, onEdit, onDelete, onMove, onAdd, onDropTask, draggedTaskId, isDragOver, onDragOverCol, onTaskDragStart, onTaskDragEnd }: {
+function KanbanCol({ col, tasks, projectMap, onEdit, onDelete, onMove, onAdd, onDropTask, draggedTaskId, isDragOver, onDragOverCol, onTaskDragStart, onTaskDragEnd }: {
   col: typeof columns[number];
   tasks: Task[];
+  projectMap: Map<string, string>;
   onEdit: (t: Task) => void;
   onDelete: (id: string) => void;
   onMove: (id: string, status: TaskStatus) => void;
@@ -235,6 +243,7 @@ function KanbanCol({ col, tasks, onEdit, onDelete, onMove, onAdd, onDropTask, dr
               <div key={task.id} className="relative">
                 <TaskCard
                   task={task}
+                  projectName={projectMap.get(task.projectId)}
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onMove={onMove}
@@ -353,8 +362,9 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
 // KANBAN PAGE
 // ============================================
 export function KanbanPage() {
-  const { addToast, showSaved, dataVersion, requireAuth } = useApp();
+  const { addToast, showSaved, dataVersion, requireAuth, pushProjectAfterSave, bumpDataVersion, pushTaskAfterSave, deleteRemoteTask } = useApp();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -362,9 +372,33 @@ export function KanbanPage() {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<TaskStatus | null>(null);
 
+  // Helper: update project stats after any task change
+  async function updateProjectStats(projectId: string) {
+    if (!projectId) return;
+    const [allTasks, allProjects] = await Promise.all([getAllTasks(), getAllProjects()]);
+    const project = allProjects.find(p => p.id === projectId);
+    if (!project) return;
+    const pTasks = allTasks.filter(t => t.projectId === projectId);
+    const now = new Date().toISOString();
+    const updated = {
+      ...project,
+      taskCount: pTasks.length,
+      completedTasks: pTasks.filter(t => t.status === 'done').length,
+      progress: pTasks.length > 0 ? Math.round((pTasks.filter(t => t.status === 'done').length / pTasks.length) * 100) : 0,
+      updatedAt: now,
+    };
+    await saveProject(updated);
+    await pushProjectAfterSave(updated);
+    bumpDataVersion();
+  }
+
   useEffect(() => {
-    getAllTasks().then(t => { setTasks(t); setLoading(false); });
+    Promise.all([getAllTasks(), getAllProjects()]).then(([t, p]) => {
+      setTasks(t); setProjects(p); setLoading(false);
+    });
   }, [dataVersion]);
+
+  const projectMap = new Map(projects.map(p => [p.id, p.name]));
 
   function getColumnTasks(status: TaskStatus) {
     return tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
@@ -373,6 +407,8 @@ export function KanbanPage() {
   async function handleSave(task: Task) {
     requireAuth(async () => {
       await saveTask(task);
+      await pushTaskAfterSave(task);
+      await updateProjectStats(task.projectId);
       const updated = await getAllTasks();
       setTasks(updated);
       setModalOpen(false);
@@ -384,7 +420,11 @@ export function KanbanPage() {
 
   async function handleDelete(id: string) {
     requireAuth(async () => {
+      const task = tasks.find(t => t.id === id);
+      addTombstone(id);
       await deleteTask(id);
+      await deleteRemoteTask(id);
+      if (task?.projectId) await updateProjectStats(task.projectId);
       setTasks(prev => prev.filter(t => t.id !== id));
       addToast({ message: 'Task deleted', type: 'info' });
     });
@@ -396,7 +436,9 @@ export function KanbanPage() {
       if (!task) return;
       const updated = { ...task, status, updatedAt: new Date().toISOString() };
       await saveTask(updated);
+      await pushTaskAfterSave(updated);
       setTasks(prev => prev.map(t => t.id === id ? updated : t));
+      if (task.projectId) await updateProjectStats(task.projectId);
       showSaved();
     });
   }
@@ -618,6 +660,7 @@ export function KanbanPage() {
               key={col.id}
               col={col}
               tasks={getColumnTasks(col.id)}
+              projectMap={projectMap}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onMove={handleMove}

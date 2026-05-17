@@ -6,6 +6,7 @@ import { sendMessage } from '../utils/gemini';
 import { parseAction, type ParsedAction, type ActionType } from '../utils/actionParser';
 import { useApp } from '../store/AppContext';
 import { saveProject, saveTask, saveNote, getAllProjects, getAllTasks, deleteProject, deleteTask } from '../database/db';
+import { addTombstone } from '../database/sync';
 import type { ChatMessage, Project, Task, Note, ActivePage } from '../types';
 
 const PROJECT_COLORS = ['violet', 'cyan', 'lime', 'yellow', 'red'];
@@ -70,26 +71,50 @@ export function ChatBubble() {
     switch (action.type) {
       case 'create_project': {
         const name = action.params.name;
+        // Auto-generate tags dari kata kunci judul
+        const tagKeywords: Record<string, string[]> = {
+          keuangan: ['finance', 'keuangan'], finansial: ['finance'], budget: ['budget'],
+          web: ['web', 'html', 'css'], mobile: ['mobile', 'app'], api: ['api', 'backend'],
+          ui: ['ui', 'design'], desain: ['design', 'ui'], akademik: ['education'],
+          inventori: ['inventory'], toko: ['ecommerce'], belanja: ['ecommerce'],
+          chat: ['realtime', 'socket'], login: ['auth'], auth: ['auth'],
+          dashboard: ['dashboard', 'analytics'], laporan: ['report'],
+        };
+        const autoTags: string[] = [];
+        const lower = name.toLowerCase();
+        for (const [key, tags] of Object.entries(tagKeywords)) {
+          if (lower.includes(key)) tags.forEach(t => { if (!autoTags.includes(t)) autoTags.push(t); });
+        }
+        if (autoTags.length === 0) autoTags.push('project'); // fallback
         const project: Project = {
           id: `proj-${Date.now()}`, name, description: '', status: 'active', priority: 'medium',
-          tags: [], color: randomColor(), progress: 0, taskCount: 0, completedTasks: 0, createdAt: now, updatedAt: now,
+          tags: autoTags, color: randomColor(), progress: 0, taskCount: 0, completedTasks: 0, createdAt: now, updatedAt: now,
         };
         await saveProject(project);
         await pushProjectAfterSave(project);
         bumpDataVersion();
         addToast({ message: `Project "${name}" dibuat!`, type: 'success' });
-        return `✅ Project **"${name}"** berhasil dibuat!\n\nMau tambahkan task ke project ini? Ketik:\n\`tambahkan task [nama task] ke project ${name}\``;
+        return `✅ Project **"${name}"** berhasil dibuat!\nTags otomatis: ${autoTags.map(t => `\`${t}\``).join(', ')}\n\nMau tambahkan task? Ketik:\n\`tambahkan task [nama] ke project ${name}\``;
       }
       case 'create_task': {
         const title = action.params.title;
+        // Jika judul kosong/kalimat tanya → biarkan AI yang menjawab
+        if (!title || title.length < 2) return null;
         const projects = await getAllProjects();
         const activeProject = projects.find(p => p.status === 'active') || projects[0];
         const task: Task = {
-          id: `t-${Date.now()}`, projectId: activeProject?.id || 'proj-1', title, description: '',
+          id: `t-${Date.now()}`, projectId: activeProject?.id || '', title, description: '',
           status: 'todo', priority: 'medium', tags: [], order: 0, createdAt: now, updatedAt: now,
         };
         await saveTask(task);
         await pushTaskAfterSave(task);
+        // Update project stats
+        if (activeProject) {
+          const allT = await getAllTasks();
+          const pT = allT.filter(t => t.projectId === activeProject.id);
+          const upd = { ...activeProject, taskCount: pT.length, completedTasks: pT.filter(t => t.status === 'done').length, progress: pT.length > 0 ? Math.round((pT.filter(t => t.status === 'done').length / pT.length) * 100) : 0, updatedAt: now };
+          await saveProject(upd); await pushProjectAfterSave(upd);
+        }
         bumpDataVersion();
         addToast({ message: `Task "${title}" dibuat!`, type: 'success' });
         return `✅ Task **"${title}"** dibuat di project "${activeProject?.name || 'default'}"!`;
@@ -108,6 +133,8 @@ export function ChatBubble() {
       case 'add_task_to_project': {
         const taskTitle = action.params.title;
         const projectName = action.params.projectName;
+        // Jika title kosong (kena question guard) → biarkan AI menjawab
+        if (!taskTitle || taskTitle.length < 2) return null;
         const projects = await getAllProjects();
         const found = projects.find(p => p.name.toLowerCase().includes(projectName.toLowerCase()));
         if (!found) return `❌ Project "${projectName}" tidak ditemukan. Cek nama projectnya ya.\n\nProject yang ada:\n${projects.map(p => `• ${p.name}`).join('\n')}`;
@@ -143,23 +170,64 @@ export function ChatBubble() {
         const projects = await getAllProjects();
         const found = projects.find(p => p.name.toLowerCase().includes(action.params.name.toLowerCase()));
         if (!found) return `❌ Project "${action.params.name}" tidak ditemukan.`;
+        // Hapus semua task dalam project ini juga
+        const allTasks = await getAllTasks();
+        const projectTasks = allTasks.filter(t => t.projectId === found.id);
+        for (const t of projectTasks) { addTombstone(t.id); await deleteTask(t.id); await deleteRemoteTask(t.id); }
+        addTombstone(found.id);
         await deleteProject(found.id); await deleteRemoteProject(found.id);
-        addToast({ message: `Project "${found.name}" dihapus!`, type: 'warning' });
-        return `🗑️ Project **"${found.name}"** dihapus.`;
+        bumpDataVersion();
+        addToast({ message: `Project "${found.name}" + ${projectTasks.length} task dihapus!`, type: 'warning' });
+        return `🗑️ Project **"${found.name}"** dan **${projectTasks.length} task** di dalamnya berhasil dihapus.`;
       }
       case 'delete_task': {
         const tasks = await getAllTasks();
         const found = tasks.find(t => t.title.toLowerCase().includes(action.params.title.toLowerCase()));
         if (!found) return `❌ Task "${action.params.title}" tidak ditemukan.`;
+        addTombstone(found.id);
         await deleteTask(found.id); await deleteRemoteTask(found.id);
         addToast({ message: `Task "${found.title}" dihapus!`, type: 'warning' });
         return `🗑️ Task **"${found.title}"** dihapus.`;
+      }
+      case 'count_tasks': {
+        const pName = action.params.projectName?.trim();
+        const allProjects = await getAllProjects();
+        const allTasksAll = await getAllTasks();
+        if (pName) {
+          const found = allProjects.find(p => p.name.toLowerCase().includes(pName.toLowerCase()));
+          if (!found) {
+            const list = allProjects.map(p => `• ${p.name}`).join('\n');
+            return `❌ Project "${pName}" tidak ditemukan.\n\nProject yang ada:\n${list}`;
+          }
+          const pTasks = allTasksAll.filter(t => t.projectId === found.id);
+          const done = pTasks.filter(t => t.status === 'done').length;
+          const inProgress = pTasks.filter(t => t.status === 'in-progress').length;
+          const todo = pTasks.filter(t => t.status === 'todo').length;
+          const review = pTasks.filter(t => t.status === 'review').length;
+          const backlog = pTasks.filter(t => t.status === 'backlog').length;
+          return `📊 **${found.name}** — Data Aktual:\n\n` +
+            `• Total task: **${pTasks.length}**\n` +
+            `• ✅ Done: ${done}\n` +
+            `• 🔄 In Progress: ${inProgress}\n` +
+            `• 📋 To Do: ${todo}\n` +
+            `• 👁️ Review: ${review}\n` +
+            `• 📦 Backlog: ${backlog}\n\n` +
+            `Progress: **${pTasks.length > 0 ? Math.round((done / pTasks.length) * 100) : 0}%**`;
+        }
+        // Tanpa project spesifik → ringkasan semua
+        const summary = allProjects.map(p => {
+          const pt = allTasksAll.filter(t => t.projectId === p.id);
+          const d = pt.filter(t => t.status === 'done').length;
+          return `• **${p.name}**: ${pt.length} tasks (${d} done, ${Math.round(pt.length > 0 ? (d / pt.length) * 100 : 0)}%)`;
+        }).join('\n');
+        return `📊 **Ringkasan Semua Project:**\n\n${summary}\n\nTotal: **${allTasksAll.length} tasks** di ${allProjects.length} project`;
       }
       case 'navigate': {
         const page = action.params.page as ActivePage;
         setActivePage(page);
         return `🧭 Membuka **${page.charAt(0).toUpperCase() + page.slice(1)}**...`;
       }
+
       default: return null;
     }
   }, [user, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask, setActivePage, addToast]);
@@ -191,36 +259,89 @@ export function ChatBubble() {
       const answer = text.trim();
 
       if (pending.step === 'ask_name') {
-        // User memberikan nama untuk create
-        const finalAction: ParsedAction = {
-          type: pending.type,
-          params: pending.type === 'create_project' ? { name: answer } : pending.type === 'create_task' ? { title: answer } : { title: answer },
-          requiresAuth: true,
-        };
-        setPending(null);
 
-        if (!user) {
-          pushAssistant('🔒 Kamu harus **login** dulu untuk membuat project/task/note.');
+        // CASE A: create_task dengan projectId sudah diketahui → answer adalah judul task
+        if (pending.type === 'create_task' && pending.params?.projectId) {
+          const finalAction: ParsedAction = {
+            type: 'add_task_to_project',
+            params: { title: answer, projectName: pending.params.projectName || '' },
+            requiresAuth: true,
+          };
+          setPending(null);
+          if (!user) { pushAssistant('🔒 Login dulu ya!'); setLoading(false); requireAuth(() => {}); return; }
+          try { const r = await executeAction(finalAction); if (r) pushAssistant(r); }
+          catch (err: any) { pushAssistant(`❌ Gagal: ${err.message}`); }
           setLoading(false);
-          requireAuth(() => {});
           return;
         }
 
+        // CASE B: create_task tanpa projectId → cek apakah answer adalah nama project
+        if (pending.type === 'create_task' && !pending.params?.projectId) {
+          const projects = await getAllProjects();
+          const cleanAnswer = answer.replace(/^(project|proyek|projek)\s+/i, '').trim();
+          const hasProjectKw = /\bproject\b/i.test(answer);
+          const matchedProject = projects.find(p =>
+            p.name.toLowerCase().includes(cleanAnswer.toLowerCase()) ||
+            cleanAnswer.toLowerCase().includes(p.name.toLowerCase().split(' ')[0])
+          );
+
+          if (matchedProject && (hasProjectKw || cleanAnswer.toLowerCase() !== answer.toLowerCase() || matchedProject.name.toLowerCase() === cleanAnswer.toLowerCase())) {
+            // Answer cocok dengan nama project → tanya task title
+            setPending({ type: 'create_task', step: 'ask_name', params: { projectId: matchedProject.id, projectName: matchedProject.name } });
+            pushAssistant(`📋 Task apa yang mau ditambahkan ke project **"${matchedProject.name}"**?\n\nContoh: _"Setup Database"_`);
+            setLoading(false);
+            return;
+          }
+          // Tidak cocok → answer dipakai sebagai judul task, lanjut ke ask_project
+          const activeProjects = projects.filter(p => p.status !== 'archived');
+          if (activeProjects.length === 1) {
+            const fa: ParsedAction = { type: 'add_task_to_project', params: { title: answer, projectName: activeProjects[0].name }, requiresAuth: true };
+            setPending(null);
+            if (!user) { pushAssistant('🔒 Login dulu ya!'); setLoading(false); requireAuth(() => {}); return; }
+            try { const r = await executeAction(fa); if (r) pushAssistant(r); } catch (e: any) { pushAssistant(`❌ ${e.message}`); }
+            setLoading(false); return;
+          }
+          const list = activeProjects.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+          setPending({ type: 'create_task', step: 'ask_project', params: { title: answer } });
+          pushAssistant(`📋 Task **"${answer}"** mau ke project mana?\n\n${list}\n\nKetik nama atau nomor:`);
+          setLoading(false);
+          return;
+        }
+
+        // CASE C: create_project / create_note → pakai answer sebagai nama/judul
+        const finalAction: ParsedAction = {
+          type: pending.type,
+          params: pending.type === 'create_project' ? { name: answer } : { title: answer },
+          requiresAuth: true,
+        };
+        setPending(null);
+        if (!user) {
+          pushAssistant('🔒 Kamu harus **login** dulu untuk membuat project/task/note.');
+          setLoading(false); requireAuth(() => {}); return;
+        }
         try {
           const result = await executeAction(finalAction);
           if (result) pushAssistant(result);
-        } catch (err: any) {
-          pushAssistant(`❌ Gagal: ${err.message}`);
-        }
+        } catch (err: any) { pushAssistant(`❌ Gagal: ${err.message}`); }
         setLoading(false);
         return;
       }
 
       if (pending.step === 'ask_project') {
-        // User memberikan nama project untuk task
+        // Resolve project dari jawaban user (bisa nomor atau nama)
+        let projectName = answer;
+        const numInput = parseInt(answer.trim(), 10);
+        if (!isNaN(numInput)) {
+          // User ketik nomor → ambil dari list project
+          const projects = await getAllProjects();
+          const activeProjects = projects.filter(p => p.status !== 'archived');
+          const chosen = activeProjects[numInput - 1];
+          if (chosen) projectName = chosen.name;
+        }
+
         const finalAction: ParsedAction = {
           type: 'add_task_to_project',
-          params: { title: pending.params.title, projectName: answer },
+          params: { title: pending.params.title, projectName },
           requiresAuth: true,
         };
         setPending(null);
@@ -308,64 +429,77 @@ export function ChatBubble() {
     const bulkMatch = text.match(/(?:tambah(?:kan|in)?|add)\s+(?:semua|seluruh|all)\s+(?:task|tugas)?\s*(?:ke|di|pada)?\s*(?:project|proyek|projek)?\s+(.+)/i);
     if (bulkMatch) {
       const targetProject = bulkMatch[1]?.trim().replace(/["""]/g, '');
-      const lastAiMsg = [...messages].reverse().find(m => m.role === 'assistant');
 
-      if (lastAiMsg && targetProject) {
-        if (!user) {
-          pushAssistant('🔒 Kamu harus **login** dulu.');
-          setLoading(false);
-          requireAuth(() => {});
-          return;
-        }
+      if (!user) {
+        pushAssistant('🔒 Kamu harus **login** dulu.');
+        setLoading(false);
+        requireAuth(() => {});
+        return;
+      }
 
-        // Ekstrak semua item bernomor dari pesan AI
-        const lines = lastAiMsg.content.split('\n');
-        const items: string[] = [];
+      // Cari item bernomor dari SEMUA pesan AI (bukan cuma yang terakhir)
+      const items: string[] = [];
+      for (const msg of [...messages].reverse()) {
+        if (msg.role !== 'assistant') continue;
+        const lines = msg.content.split('\n');
         for (const line of lines) {
           const m = line.match(/^\s*(\d+)[.)\-\.]\s*(.+)/i)
             || line.match(/^\s*(\d+)️⃣\s*(.+)/i)
             || line.match(/^(\d+)\.\s*\*\*(.+?)\*\*/i);
           if (m) {
             const item = m[2].replace(/\*\*/g, '').replace(/\s*[-—–:].*/g, '').trim();
-            if (item) items.push(item);
+            if (item && !items.includes(item)) items.push(item);
           }
         }
-
-        if (items.length > 0) {
-          const projects = await getAllProjects();
-          const found = projects.find(p => p.name.toLowerCase().includes(targetProject.toLowerCase()));
-          if (!found) {
-            pushAssistant(`❌ Project "${targetProject}" tidak ditemukan.\n\nProject yang ada:\n${projects.map(p => `• ${p.name}`).join('\n')}`);
-            setLoading(false);
-            return;
-          }
-
-          const now = new Date().toISOString();
-          const created: string[] = [];
-          for (const item of items) {
-            const task: Task = {
-              id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-              projectId: found.id, title: item, description: '',
-              status: 'todo', priority: 'medium', tags: [], order: created.length, createdAt: now, updatedAt: now,
-            };
-            await saveTask(task);
-            await pushTaskAfterSave(task);
-            created.push(item);
-          }
-          // Update project taskCount di DB
-          const allTasksForProject = await getAllTasks();
-          const projectTasks = allTasksForProject.filter(t => t.projectId === found.id);
-          const updatedProject = { ...found, taskCount: projectTasks.length, completedTasks: projectTasks.filter(t => t.status === 'done').length, progress: projectTasks.length > 0 ? Math.round((projectTasks.filter(t => t.status === 'done').length / projectTasks.length) * 100) : 0, updatedAt: now };
-          await saveProject(updatedProject);
-          await pushProjectAfterSave(updatedProject);
-          bumpDataVersion();
-          addToast({ message: `${created.length} task ditambahkan ke ${found.name}!`, type: 'success' });
-          pushAssistant(`✅ **${created.length} task** berhasil ditambahkan ke project **"${found.name}"**!\n\n${created.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\nBuka Kanban untuk melihatnya!`);
-          setLoading(false);
-          return;
-        }
+        if (items.length > 0) break; // pakai pesan AI terbaru yang punya numbered items
       }
+
+      if (items.length === 0) {
+        // Tidak ada numbered items — minta user tanya task dulu
+        pushAssistant(`ℹ️ Tidak ada daftar task yang bisa ditambahkan.\n\nCoba tanya dulu:\n_"task apa yang dibutuhkan untuk project ${targetProject}?"_\n\nLalu ketik lagi: **"tambahkan semua task di ${targetProject}"**`);
+        setLoading(false);
+        return;
+      }
+
+      const projects = await getAllProjects();
+      const found = projects.find(p => p.name.toLowerCase().includes(targetProject.toLowerCase()));
+      if (!found) {
+        pushAssistant(`❌ Project "${targetProject}" tidak ditemukan.\n\nProject yang ada:\n${projects.map(p => `• ${p.name}`).join('\n')}`);
+        setLoading(false);
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const created: string[] = [];
+      for (const item of items) {
+        const task: Task = {
+          id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          projectId: found.id, title: item, description: '',
+          status: 'todo', priority: 'medium', tags: [], order: created.length, createdAt: now, updatedAt: now,
+        };
+        await saveTask(task);
+        await pushTaskAfterSave(task);
+        created.push(item);
+      }
+      // Update project taskCount & progress
+      const allTasksForProject = await getAllTasks();
+      const projectTasks = allTasksForProject.filter(t => t.projectId === found.id);
+      const updatedProject = {
+        ...found,
+        taskCount: projectTasks.length,
+        completedTasks: projectTasks.filter(t => t.status === 'done').length,
+        progress: projectTasks.length > 0 ? Math.round((projectTasks.filter(t => t.status === 'done').length / projectTasks.length) * 100) : 0,
+        updatedAt: now,
+      };
+      await saveProject(updatedProject);
+      await pushProjectAfterSave(updatedProject);
+      bumpDataVersion();
+      addToast({ message: `${created.length} task ditambahkan ke ${found.name}!`, type: 'success' });
+      pushAssistant(`✅ **${created.length} task** berhasil ditambahkan ke project **"${found.name}"**!\n\n${created.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\nBuka Kanban untuk melihatnya!`);
+      setLoading(false);
+      return;
     }
+
 
     // === NORMAL: Parse action ===
     const action = parseAction(text);
@@ -392,6 +526,36 @@ export function ChatBubble() {
         setLoading(false);
         return;
       }
+      // create_task punya judul tapi tidak ada project → tanya mau ke project mana
+      if (action.type === 'create_task' && action.params.title) {
+        const projects = await getAllProjects();
+        const activeProjects = projects.filter(p => p.status !== 'archived');
+        if (activeProjects.length === 0) {
+          pushAssistant('❌ Tidak ada project. Buat project dulu ya!');
+          setLoading(false);
+          return;
+        }
+        if (activeProjects.length === 1) {
+          // Hanya 1 project → langsung tambahkan
+          const finalAction: ParsedAction = {
+            type: 'add_task_to_project',
+            params: { title: action.params.title, projectName: activeProjects[0].name },
+            requiresAuth: true,
+          };
+          try {
+            const result = await executeAction(finalAction);
+            if (result) pushAssistant(result);
+          } catch (err: any) { pushAssistant(`❌ Gagal: ${err.message}`); }
+          setLoading(false);
+          return;
+        }
+        // Multiple projects → tanya user pilih project mana
+        const projectList = activeProjects.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+        setPending({ type: 'create_task', step: 'ask_project', params: { title: action.params.title } });
+        pushAssistant(`📋 Task **"${action.params.title}"** mau ditambahkan ke project mana?\n\n${projectList}\n\nKetik nama atau nomor project-nya:`);
+        setLoading(false);
+        return;
+      }
       if (action.type === 'create_note' && !action.params.title) {
         setPending({ type: 'create_note', step: 'ask_name', params: {} });
         pushAssistant('📝 Mau buat note baru! Apa **judul** note-nya?');
@@ -411,10 +575,32 @@ export function ChatBubble() {
     }
 
     // Bukan aksi → AI (Groq → Gemini → Offline)
-    const history = messages.map(m => ({ role: m.role, content: m.content }));
-    const result = await sendMessage([...history, { role: 'user', content: text }]);
+    // Inject data konteks real-time dari IndexedDB agar AI bisa jawab pertanyaan data
+    const [allProjects, allTasks] = await Promise.all([getAllProjects(), getAllTasks()]);
+    const projectContext = allProjects.map(p => {
+      const pTasks = allTasks.filter(t => t.projectId === p.id);
+      const done = pTasks.filter(t => t.status === 'done').length;
+      return `• ${p.name} [${p.status}] — ${pTasks.length} tasks (${done} done, ${pTasks.length - done} remaining), progress: ${p.progress}%`;
+    }).join('\n');
+    const taskContext = allTasks.length > 0
+      ? allTasks.map(t => {
+          const proj = allProjects.find(p => p.id === t.projectId);
+          return `• [${proj?.name || 'No Project'}] ${t.title} (${t.status}, ${t.priority})`;
+        }).slice(0, 30).join('\n') // max 30 tasks untuk hemat token
+      : 'Tidak ada task.';
+
+    const dataContextMsg = {
+      role: 'assistant' as const,
+      content: `[DATA AKTUAL USER — ${new Date().toLocaleDateString('id-ID')}]\n\nPROJECT (${allProjects.length}):\n${projectContext || 'Tidak ada project.'}\n\nTASK (${allTasks.length} total):\n${taskContext}`,
+    };
+
+    const history = messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+    // Sisipkan data context sebagai pesan pertama agar AI tahu data real
+    const messagesWithContext = [dataContextMsg, ...history, { role: 'user' as const, content: text }];
+    const result = await sendMessage(messagesWithContext);
     pushAssistant(result.error || result.text);
     setLoading(false);
+
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

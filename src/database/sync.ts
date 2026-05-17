@@ -39,6 +39,28 @@ function recordToCamel(r: Record<string, unknown>): Record<string, unknown> {
   return result;
 }
 
+// ============================================
+// TOMBSTONE — track deleted IDs so sync won't restore them
+// ============================================
+const TOMBSTONE_KEY = 'fs_deleted_ids';
+
+function getTombstones(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(TOMBSTONE_KEY) || '{}'); } catch { return {}; }
+}
+
+export function addTombstone(id: string): void {
+  const t = getTombstones();
+  t[id] = Date.now();
+  // Expire entries older than 30 days
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  for (const [k, v] of Object.entries(t)) { if (v < cutoff) delete t[k]; }
+  try { localStorage.setItem(TOMBSTONE_KEY, JSON.stringify(t)); } catch {}
+}
+
+function isDeleted(id: string): boolean {
+  return id in getTombstones();
+}
+
 async function syncTable<T extends { id: string; updatedAt: string }>(
   tableName: string,
   getAllLocal: () => Promise<T[]>,
@@ -74,8 +96,16 @@ async function syncTable<T extends { id: string; updatedAt: string }>(
       const r = remoteMap.get(id);
 
       if (!l && r) {
-        await saveLocal(r);
-        status.synced++;
+        // Item ada di remote tapi tidak di local
+        if (isDeleted(id)) {
+          // User sudah hapus ini — hapus dari remote juga
+          await supabase.from(tableName).delete().eq('id', id).eq('user_id', user.id);
+          status.synced++;
+        } else {
+          // Bukan dihapus user — restore dari remote
+          await saveLocal(r);
+          status.synced++;
+        }
       } else if (l && !r) {
         const { error: upsertError } = await supabase
           .from(tableName)

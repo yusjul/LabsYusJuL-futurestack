@@ -1,7 +1,8 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Folder, Archive, FileEdit, Tag, Trash2, MoreVertical } from 'lucide-react';
 import { useApp } from '../store/AppContext';
-import { getAllProjects, getAllTasks, saveProject, deleteProject } from '../database/db';
+import { getAllProjects, getAllTasks, saveProject, deleteProject, deleteTask } from '../database/db';
+import { addTombstone } from '../database/sync';
 import type { Project, ProjectStatus, Task } from '../types';
 import { Button } from '../components/Button';
 import { Input, Select } from '../components/FormControls';
@@ -285,7 +286,7 @@ function ProjectModal({ open, project, onClose, onSave }: {
 // PROJECTS PAGE
 // ============================================
 export function ProjectsPage() {
-  const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject, dataVersion, requireAuth } = useApp();
+  const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject, deleteRemoteTask, bumpDataVersion, dataVersion, requireAuth } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -329,10 +330,20 @@ export function ProjectsPage() {
 
   async function handleDelete(id: string) {
     requireAuth(async () => {
+      // Hapus semua tasks dalam project ini
+      const allTasks = await getAllTasks();
+      const projectTasks = allTasks.filter(t => t.projectId === id);
+      for (const t of projectTasks) {
+        addTombstone(t.id);
+        await deleteTask(t.id);
+        deleteRemoteTask(t.id);
+      }
+      addTombstone(id);
       await deleteProject(id);
       deleteRemoteProject(id);
       setProjects(prev => prev.filter(p => p.id !== id));
-      addToast({ message: 'Project deleted', type: 'info' });
+      bumpDataVersion();
+      addToast({ message: `Project + ${projectTasks.length} tasks deleted`, type: 'warning' });
     });
   }
 

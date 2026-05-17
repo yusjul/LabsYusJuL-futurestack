@@ -10,6 +10,7 @@ export type ActionType =
   | 'add_task_to_project'
   | 'list_projects'
   | 'list_tasks'
+  | 'count_tasks'
   | 'delete_project'
   | 'delete_task'
   | 'navigate'
@@ -48,6 +49,12 @@ function extractAfter(input: string, keywords: string[]): string {
   return '';
 }
 
+// Guard: kalimat pertanyaan jangan diproses sebagai nama task/project
+function isQuestionPhrase(text: string): boolean {
+  const questionWords = /^(apa|bagaimana|berapa|kenapa|mengapa|kapan|siapa|dimana|yang\s+mana|gimana|gmn|apakah)/i;
+  return questionWords.test(text.trim()) || text.trim().endsWith('?');
+}
+
 const actionRules: ActionRule[] = [
   // === ADD TASK TO SPECIFIC PROJECT ===
   // "tambahkan task Deploy Backend ke project LabsYusJuL API"
@@ -56,10 +63,13 @@ const actionRules: ActionRule[] = [
     patterns: [
       /(?:tambah(?:kan|in)?|add|buat(?:kan)?)\s+(?:task|tugas)\s+(.+?)\s+(?:ke|di|pada|into|to)\s+(?:project|proyek|projek)\s+(.+)/i,
     ],
-    extract: (match) => ({
-      title: match[1]?.trim().replace(/["""]/g, '') || '',
-      projectName: match[2]?.trim().replace(/["""]/g, '') || '',
-    }),
+    extract: (match) => {
+      const title = match[1]?.trim().replace(/["""]/g, '') || '';
+      const projectName = match[2]?.trim().replace(/["""]/g, '') || '';
+      // Reject if task title looks like a question
+      if (isQuestionPhrase(title)) return { title: '', projectName: '' };
+      return { title, projectName };
+    },
     requiresAuth: true,
   },
   // === CREATE PROJECT (bisa tanpa nama → akan ditanyakan) ===
@@ -86,9 +96,12 @@ const actionRules: ActionRule[] = [
       /(?:buat(?:kan|in)?|create|tambah(?:kan|in)?|bikin)\s+(?:task|tugas|todo)(?:nya)?\b/i,
       /(?:tolong|coba|mau|ingin|minta)\s+(?:buat(?:kan|in)?|bikin)\s+(?:task|tugas|todo)(?:nya)?\b/i,
     ],
-    extract: (_m, input) => ({
-      title: extractAfter(input, ['task ', 'tugas ', 'todo ', 'tasknya ', 'tugasnya ']),
-    }),
+    extract: (_m, input) => {
+      const title = extractAfter(input, ['task ', 'tugas ', 'todo ', 'tasknya ', 'tugasnya ']);
+      // Jika judulnya kalimat tanya → kosongkan (akan ditanyakan AI)
+      if (isQuestionPhrase(title)) return { title: '' };
+      return { title };
+    },
     requiresAuth: true,
   },
   // === CREATE NOTE ===
@@ -119,6 +132,17 @@ const actionRules: ActionRule[] = [
       /(?:task|tugas|todo)\s+(?:apa\s+)?(?:saja|aja)/i,
     ],
     extract: () => ({}), requiresAuth: false,
+  },
+  // === COUNT TASKS IN PROJECT ===
+  {
+    type: 'count_tasks',
+    patterns: [
+      /(?:berapa|how many|jumlah)\s+(?:task|tugas)\s+(?:di|di project|in|pada)?\s*(?:project|proyek|projek)?\s+(.+)/i,
+      /(?:task|tugas)\s+(?:di|dalam|in)\s+(?:project|proyek|projek)?\s*(.+?)\s+(?:berapa|ada berapa|jumlahnya)/i,
+      /(?:progress|status)\s+(?:project|proyek|projek)?\s*(.+)/i,
+    ],
+    extract: (m) => ({ projectName: m[1]?.trim().replace(/["""?]/g, '') || '' }),
+    requiresAuth: false,
   },
   // === DELETE ===
   {
