@@ -69,6 +69,10 @@ const actionRules: ActionRule[] = [
       /(?:buat(?:kan|in)?|create|tambah(?:kan|in)?|bikin)\s+(?:project|proyek|projek)(?:nya)?\b/i,
       /(?:tolong|coba|mau|ingin|minta)\s+(?:buat(?:kan|in)?|bikin)\s+(?:project|proyek|projek)(?:nya)?\b/i,
       /(?:ingin|mau|pengen)\s+(?:mem)?buat\s+(?:project|proyek|projek)(?:nya)?\b/i,
+      // "tambahkan project X", "tambahkan saya project X"
+      /(?:tambah(?:kan|in)?)\s+(?:saya\s+)?(?:project|proyek|projek)(?:nya)?\b/i,
+      // "add project X"
+      /add\s+(?:a\s+)?(?:new\s+)?project/i,
     ],
     extract: (_m, input) => ({
       name: extractAfter(input, ['project ', 'proyek ', 'projek ', 'projectnya ', 'proyeknya ']),

@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import type { Theme, ConnectionStatus, Toast, ActivePage, UserSettings, NotificationEntry, Project, Task, Note } from '../types';
 import { getSettings, saveSettings } from '../database/db';
 import * as syncEngine from '../database/sync';
@@ -53,6 +53,7 @@ interface AppActions {
   deleteRemoteTask: (id: string) => Promise<void>;
   pushNoteAfterSave: (note: Note) => Promise<void>;
   deleteRemoteNote: (id: string) => Promise<void>;
+  bumpDataVersion: () => void;
 }
 
 type AppContextValue = AppState & AppActions;
@@ -410,6 +411,7 @@ function applyAccent(accent: string) {
     pushProjectAfterSave, deleteRemoteProject,
     pushTaskAfterSave, deleteRemoteTask,
     pushNoteAfterSave, deleteRemoteNote,
+    bumpDataVersion: () => setDataVersion(v => v + 1),
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

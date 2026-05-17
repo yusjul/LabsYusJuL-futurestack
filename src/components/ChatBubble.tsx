@@ -36,7 +36,7 @@ export function ChatBubble() {
   const panelRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<ReturnType<typeof animate> | null>(null);
 
-  const { user, requireAuth, setActivePage, addToast, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask } = useApp();
+  const { user, requireAuth, setActivePage, addToast, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask } = useApp();
   const hasUnread = !open && messages.length > 0 && messages[messages.length - 1].role === 'assistant';
 
   useEffect(() => { if (user) resetGuestMsgCount(); }, [user]);
@@ -76,6 +76,7 @@ export function ChatBubble() {
         };
         await saveProject(project);
         await pushProjectAfterSave(project);
+        bumpDataVersion();
         addToast({ message: `Project "${name}" dibuat!`, type: 'success' });
         return `✅ Project **"${name}"** berhasil dibuat!\n\nMau tambahkan task ke project ini? Ketik:\n\`tambahkan task [nama task] ke project ${name}\``;
       }
@@ -89,6 +90,7 @@ export function ChatBubble() {
         };
         await saveTask(task);
         await pushTaskAfterSave(task);
+        bumpDataVersion();
         addToast({ message: `Task "${title}" dibuat!`, type: 'success' });
         return `✅ Task **"${title}"** dibuat di project "${activeProject?.name || 'default'}"!`;
       }
@@ -99,6 +101,7 @@ export function ChatBubble() {
         };
         await saveNote(note);
         await pushNoteAfterSave(note);
+        bumpDataVersion();
         addToast({ message: `Note "${title}" dibuat!`, type: 'success' });
         return `📝 Note **"${title}"** berhasil dibuat!`;
       }
@@ -114,6 +117,13 @@ export function ChatBubble() {
         };
         await saveTask(task);
         await pushTaskAfterSave(task);
+        // Update project stats
+        const allTasks = await getAllTasks();
+        const pTasks = allTasks.filter(t => t.projectId === found.id);
+        const updated = { ...found, taskCount: pTasks.length, completedTasks: pTasks.filter(t => t.status === 'done').length, progress: pTasks.length > 0 ? Math.round((pTasks.filter(t => t.status === 'done').length / pTasks.length) * 100) : 0, updatedAt: now };
+        await saveProject(updated);
+        await pushProjectAfterSave(updated);
+        bumpDataVersion();
         addToast({ message: `Task "${taskTitle}" ditambahkan ke ${found.name}!`, type: 'success' });
         return `✅ Task **"${taskTitle}"** berhasil ditambahkan ke project **"${found.name}"**!\n\nMau tambah task lagi? Ketik:\n\`tambahkan task [nama] ke project ${found.name}\``;
       }
@@ -152,7 +162,7 @@ export function ChatBubble() {
       }
       default: return null;
     }
-  }, [user, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask, setActivePage, addToast]);
+  }, [user, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask, setActivePage, addToast]);
 
   // ================================
   // SEND HANDLER
@@ -230,6 +240,130 @@ export function ChatBubble() {
         }
         setLoading(false);
         return;
+      }
+    }
+
+    // === SMART CONTEXT: "nomor X tambahkan ke project Y" ===
+    // Cek apakah user mereferensi item bernomor dari pesan AI sebelumnya
+    const numPatterns = [
+      // "tambahkan 7 nomor ketask project X" / "tambahkan 7 ke task project X"
+      /(?:tambah(?:kan|in)?|add)\s+(\d+)\s+(?:nomor\s+)?(?:ke\s*)?(?:task|tugas)?\s*(?:project|proyek|projek)\s+(.+)/i,
+      // "7 tambahkan ke project X" / "nomor 7 tambahkan ke project X"
+      /(?:nomor|no|#)?\s*(\d+)\s+(?:tambah(?:kan|in)?|add)\s+(?:ke\s*)?(?:task|tugas)?\s*(?:project|proyek|projek)\s+(.+)/i,
+      // "tambahkan nomor 7 ke project X"
+      /(?:tambah(?:kan|in)?|add)\s+(?:nomor|no|#)\s*(\d+)\s+(?:ke\s*)?(?:task|tugas)?\s*(?:project|proyek|projek)\s+(.+)/i,
+      // "nomor 7 ke project X" (tanpa tambahkan)
+      /(?:nomor|no|#)\s*(\d+)\s+(?:ke\s*)?(?:task|tugas)?\s*(?:project|proyek|projek)\s+(.+)/i,
+    ];
+    let numberRef: RegExpMatchArray | null = null;
+    for (const pat of numPatterns) {
+      numberRef = text.match(pat);
+      if (numberRef) break;
+    }
+
+    if (numberRef) {
+      const num = parseInt(numberRef[1], 10);
+      const targetProject = numberRef[2]?.trim().replace(/["""]/g, '');
+
+      // Cari item bernomor dari pesan AI terakhir
+      const lastAiMsg = [...messages].reverse().find(m => m.role === 'assistant');
+      if (lastAiMsg) {
+        const lines = lastAiMsg.content.split('\n');
+        let foundItem = '';
+        for (const line of lines) {
+          const lineMatch = line.match(new RegExp(`^\\s*${num}[.\\)\\-\\.]\\s*(.+)`, 'i'))
+            || line.match(new RegExp(`^\\s*${num}️⃣\\s*(.+)`, 'i'))
+            || line.match(new RegExp(`^${num}\\.\\s*\\*\\*(.+?)\\*\\*`, 'i'));
+          if (lineMatch) {
+            foundItem = lineMatch[1].replace(/\*\*/g, '').replace(/\s*[-—–:].*/g, '').trim();
+            break;
+          }
+        }
+
+        if (foundItem && targetProject) {
+          if (!user) {
+            pushAssistant('🔒 Kamu harus **login** dulu.');
+            setLoading(false);
+            requireAuth(() => {});
+            return;
+          }
+          const addAction: ParsedAction = {
+            type: 'add_task_to_project',
+            params: { title: foundItem, projectName: targetProject },
+            requiresAuth: true,
+          };
+          try {
+            const result = await executeAction(addAction);
+            if (result) pushAssistant(result);
+          } catch (err: any) {
+            pushAssistant(`❌ Gagal: ${err.message}`);
+          }
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
+    // === BULK ADD: "tambahkan semua task ke/di project X" ===
+    const bulkMatch = text.match(/(?:tambah(?:kan|in)?|add)\s+(?:semua|seluruh|all)\s+(?:task|tugas)?\s*(?:ke|di|pada)?\s*(?:project|proyek|projek)?\s+(.+)/i);
+    if (bulkMatch) {
+      const targetProject = bulkMatch[1]?.trim().replace(/["""]/g, '');
+      const lastAiMsg = [...messages].reverse().find(m => m.role === 'assistant');
+
+      if (lastAiMsg && targetProject) {
+        if (!user) {
+          pushAssistant('🔒 Kamu harus **login** dulu.');
+          setLoading(false);
+          requireAuth(() => {});
+          return;
+        }
+
+        // Ekstrak semua item bernomor dari pesan AI
+        const lines = lastAiMsg.content.split('\n');
+        const items: string[] = [];
+        for (const line of lines) {
+          const m = line.match(/^\s*(\d+)[.)\-\.]\s*(.+)/i)
+            || line.match(/^\s*(\d+)️⃣\s*(.+)/i)
+            || line.match(/^(\d+)\.\s*\*\*(.+?)\*\*/i);
+          if (m) {
+            const item = m[2].replace(/\*\*/g, '').replace(/\s*[-—–:].*/g, '').trim();
+            if (item) items.push(item);
+          }
+        }
+
+        if (items.length > 0) {
+          const projects = await getAllProjects();
+          const found = projects.find(p => p.name.toLowerCase().includes(targetProject.toLowerCase()));
+          if (!found) {
+            pushAssistant(`❌ Project "${targetProject}" tidak ditemukan.\n\nProject yang ada:\n${projects.map(p => `• ${p.name}`).join('\n')}`);
+            setLoading(false);
+            return;
+          }
+
+          const now = new Date().toISOString();
+          const created: string[] = [];
+          for (const item of items) {
+            const task: Task = {
+              id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              projectId: found.id, title: item, description: '',
+              status: 'todo', priority: 'medium', tags: [], order: created.length, createdAt: now, updatedAt: now,
+            };
+            await saveTask(task);
+            await pushTaskAfterSave(task);
+            created.push(item);
+          }
+          // Update project taskCount di DB
+          const allTasksForProject = await getAllTasks();
+          const projectTasks = allTasksForProject.filter(t => t.projectId === found.id);
+          const updatedProject = { ...found, taskCount: projectTasks.length, completedTasks: projectTasks.filter(t => t.status === 'done').length, progress: projectTasks.length > 0 ? Math.round((projectTasks.filter(t => t.status === 'done').length / projectTasks.length) * 100) : 0, updatedAt: now };
+          await saveProject(updatedProject);
+          await pushProjectAfterSave(updatedProject);
+          bumpDataVersion();
+          addToast({ message: `${created.length} task ditambahkan ke ${found.name}!`, type: 'success' });
+          pushAssistant(`✅ **${created.length} task** berhasil ditambahkan ke project **"${found.name}"**!\n\n${created.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\nBuka Kanban untuk melihatnya!`);
+          setLoading(false);
+          return;
+        }
       }
     }
 
