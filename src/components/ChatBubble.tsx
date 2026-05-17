@@ -15,8 +15,8 @@ function randomColor() { return PROJECT_COLORS[Math.floor(Math.random() * PROJEC
 // localStorage counter — bertahan setelah refresh
 const GUEST_MSG_KEY = 'fs_guest_msg_count';
 function getGuestMsgCount(): number { try { return parseInt(localStorage.getItem(GUEST_MSG_KEY) || '0', 10); } catch { return 0; } }
-function incrementGuestMsgCount(): number { const c = getGuestMsgCount() + 1; try { localStorage.setItem(GUEST_MSG_KEY, String(c)); } catch {} return c; }
-function resetGuestMsgCount(): void { try { localStorage.removeItem(GUEST_MSG_KEY); } catch {} }
+function incrementGuestMsgCount(): number { const c = getGuestMsgCount() + 1; try { localStorage.setItem(GUEST_MSG_KEY, String(c)); } catch { } return c; }
+function resetGuestMsgCount(): void { try { localStorage.removeItem(GUEST_MSG_KEY); } catch { } }
 
 // Pending action state — untuk alur percakapan multi-step
 interface PendingAction {
@@ -49,26 +49,32 @@ export function ChatBubble() {
 
   const { user, requireAuth, setActivePage, addToast, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask } = useApp();
   const hasUnread = !open && messages.length > 0 && messages[messages.length - 1].role === 'assistant';
-  
+
   const shortName = user ? (user.user_metadata?.full_name || user.user_metadata?.username || user.email || '').substring(0, 3).toUpperCase() : '';
 
   useEffect(() => { if (user) resetGuestMsgCount(); }, [user]);
 
   useEffect(() => {
     if (animRef.current) { animRef.current.pause(); animRef.current = null; }
+    
+    const isDark = document.documentElement.classList.contains('dark');
+    const targetShadow = isDark ? '6px 6px 0px 0px #a8a6ff' : '8px 8px 0px 0px #1b1b22';
+
     if (open) {
       setPanelVisible(true);
       setTimeout(() => {
         if (panelRef.current) {
-          panelRef.current.style.transformOrigin = 'bottom right';
+          panelRef.current.style.transformOrigin = 'calc(100% - 28px) calc(100% + 68px)';
           animRef.current = animate(panelRef.current, { 
-            translateY: [60, 0], 
-            rotateX: [70, 0],
-            rotateZ: [-10, 0],
+            translateY: [68, 0], 
             opacity: [0, 1], 
-            scale: [0.3, 1], 
-            duration: 600, 
-            easing: 'easeOutElastic(1, .6)' 
+            scale: [0.01, 1],
+            borderRadius: ['50%', '0px'],
+            filter: ['blur(8px)', 'blur(0px)'],
+            boxShadow: ['0px 0px 0px 0px rgba(0,0,0,0)', targetShadow],
+            borderWidth: ['0px', '2px'],
+            duration: 850, 
+            easing: 'easeOutQuart' 
           });
         }
         if (inputRef.current) inputRef.current.focus();
@@ -76,13 +82,15 @@ export function ChatBubble() {
     } else {
       if (panelRef.current) {
         animRef.current = animate(panelRef.current, { 
-          translateY: [0, 60], 
-          rotateX: [0, 70],
-          rotateZ: [0, -10],
+          translateY: [0, 68], 
           opacity: [1, 0], 
-          scale: [1, 0.3], 
-          duration: 300, 
-          easing: 'easeInBack', 
+          scale: [1, 0.01],
+          borderRadius: ['0px', '50%'],
+          filter: ['blur(0px)', 'blur(8px)'],
+          boxShadow: [targetShadow, '0px 0px 0px 0px rgba(0,0,0,0)'],
+          borderWidth: ['2px', '0px'],
+          duration: 400, 
+          easing: 'easeInQuad', 
           onComplete: () => { if (!open) setPanelVisible(false); } 
         });
       }
@@ -100,7 +108,7 @@ export function ChatBubble() {
         const parsed = JSON.parse(stored) as ChatSession[];
         setSessions(parsed);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // Simpan riwayat tiap ada pesan baru (kecuali kosong)
@@ -346,7 +354,7 @@ export function ChatBubble() {
       if (count >= 5) {
         pushAssistant('🔒 Kamu sudah mengirim 5 pesan! Untuk melanjutkan chat, silakan **login** dulu ya.');
         setLoading(false);
-        requireAuth(() => {});
+        requireAuth(() => { });
         return;
       }
     }
@@ -365,7 +373,7 @@ export function ChatBubble() {
             requiresAuth: true,
           };
           setPending(null);
-          if (!user) { pushAssistant('🔒 Login dulu ya!'); setLoading(false); requireAuth(() => {}); return; }
+          if (!user) { pushAssistant('🔒 Login dulu ya!'); setLoading(false); requireAuth(() => { }); return; }
           try { const r = await executeAction(finalAction); if (r) pushAssistant(r); }
           catch (err: any) { pushAssistant(`❌ Gagal: ${err.message}`); }
           setLoading(false);
@@ -394,7 +402,7 @@ export function ChatBubble() {
           if (activeProjects.length === 1) {
             const fa: ParsedAction = { type: 'add_task_to_project', params: { title: answer, projectName: activeProjects[0].name }, requiresAuth: true };
             setPending(null);
-            if (!user) { pushAssistant('🔒 Login dulu ya!'); setLoading(false); requireAuth(() => {}); return; }
+            if (!user) { pushAssistant('🔒 Login dulu ya!'); setLoading(false); requireAuth(() => { }); return; }
             try { const r = await executeAction(fa); if (r) pushAssistant(r); } catch (e: any) { pushAssistant(`❌ ${e.message}`); }
             setLoading(false); return;
           }
@@ -414,7 +422,7 @@ export function ChatBubble() {
         setPending(null);
         if (!user) {
           pushAssistant('🔒 Kamu harus **login** dulu untuk membuat project/task/note.');
-          setLoading(false); requireAuth(() => {}); return;
+          setLoading(false); requireAuth(() => { }); return;
         }
         try {
           const result = await executeAction(finalAction);
@@ -447,7 +455,7 @@ export function ChatBubble() {
         if (!user) {
           pushAssistant('🔒 Kamu harus **login** dulu.');
           setLoading(false);
-          requireAuth(() => {});
+          requireAuth(() => { });
           return;
         }
 
@@ -503,7 +511,7 @@ export function ChatBubble() {
           if (!user) {
             pushAssistant('🔒 Kamu harus **login** dulu.');
             setLoading(false);
-            requireAuth(() => {});
+            requireAuth(() => { });
             return;
           }
           const addAction: ParsedAction = {
@@ -531,7 +539,7 @@ export function ChatBubble() {
       if (!user) {
         pushAssistant('🔒 Kamu harus **login** dulu.');
         setLoading(false);
-        requireAuth(() => {});
+        requireAuth(() => { });
         return;
       }
 
@@ -607,7 +615,7 @@ export function ChatBubble() {
       if (action.requiresAuth && !user) {
         pushAssistant('🔒 Kamu harus **login** dulu untuk aksi ini (buat/hapus project, task, note).');
         setLoading(false);
-        requireAuth(() => {});
+        requireAuth(() => { });
         return;
       }
 
@@ -675,14 +683,14 @@ export function ChatBubble() {
     // === PROJECT MENTION DETECTION ===
     const [allProjects, allTasks] = await Promise.all([getAllProjects(), getAllTasks()]);
     const activeProjects = allProjects.filter(p => p.status !== 'archived');
-    
+
     // Normalize string: hapus double karakter (stress -> stres) agar lebih toleran
     const normalize = (s: string) => s.toLowerCase().replace(/(.)\1+/g, '$1').replace(/\s+/g, '');
     const normalizedText = normalize(text);
-    
+
     // Cari apakah input mereferensikan nama project yang ada
-    const mentionedProject = activeProjects.find(p => 
-      normalizedText.includes(normalize(p.name)) || 
+    const mentionedProject = activeProjects.find(p =>
+      normalizedText.includes(normalize(p.name)) ||
       // Atau jika namanya sangat mirip (fallback kasar)
       text.toLowerCase().includes(p.name.toLowerCase())
     );
@@ -704,9 +712,9 @@ export function ChatBubble() {
     }).join('\n');
     const taskContext = allTasks.length > 0
       ? allTasks.map(t => {
-          const proj = allProjects.find(p => p.id === t.projectId);
-          return `• [${proj?.name || 'No Project'}] ${t.title} (${t.status}, ${t.priority})`;
-        }).slice(0, 30).join('\n') // max 30 tasks untuk hemat token
+        const proj = allProjects.find(p => p.id === t.projectId);
+        return `• [${proj?.name || 'No Project'}] ${t.title} (${t.status}, ${t.priority})`;
+      }).slice(0, 30).join('\n') // max 30 tasks untuk hemat token
       : 'Tidak ada task.';
 
     const dataContextMsg = {
@@ -731,9 +739,9 @@ export function ChatBubble() {
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3">
+      <div className="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3" style={{ perspective: 1200 }}>
         {panelVisible && (
-          <div ref={panelRef} className="w-80 sm:w-96 border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard-lg dark:shadow-[6px_6px_0px_0px_#a8a6ff] flex flex-col overflow-hidden" style={{ maxHeight: 'min(500px, 70vh)', transformOrigin: 'bottom right' }}>
+          <div ref={panelRef} className="w-80 sm:w-96 bg-surface dark:bg-[#1e1e2a] flex flex-col overflow-hidden relative z-20" style={{ maxHeight: 'min(500px, 70vh)', transformOrigin: 'calc(100% - 28px) calc(100% + 68px)', transformStyle: 'preserve-3d' }}>
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b-2 border-on-surface dark:border-[#464552] bg-primary text-on-primary">
               <div className="flex items-center gap-2">
@@ -768,9 +776,9 @@ export function ChatBubble() {
             <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] dot-grid relative z-0">
               {/* Background Ornaments */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15] dark:opacity-[0.1] -z-10 flex flex-col justify-between">
-                <svg className="absolute top-8 right-6 w-16 h-16 text-pink-500 dark:text-pink-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <svg className="absolute top-1/2 left-4 w-12 h-12 text-cyan-500 dark:text-cyan-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
-                <svg className="absolute bottom-8 right-12 w-20 h-20 text-yellow-500 dark:text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M4.9 19.1L19.1 4.9"/></svg>
+                <svg className="absolute top-8 right-6 w-16 h-16 text-pink-500 dark:text-pink-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg className="absolute top-1/2 left-4 w-12 h-12 text-cyan-500 dark:text-cyan-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /></svg>
+                <svg className="absolute bottom-8 right-12 w-20 h-20 text-yellow-500 dark:text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M4.9 19.1L19.1 4.9" /></svg>
               </div>
 
               {showHistory ? (
@@ -849,7 +857,9 @@ export function ChatBubble() {
             </div>
           </div>
         )}
-        <AssistantFace open={open} onToggle={() => setOpen(v => !v)} unread={hasUnread} />
+        <div className="relative z-10">
+          <AssistantFace open={open} onToggle={() => setOpen(v => !v)} unread={hasUnread} />
+        </div>
       </div>
       {panelVisible && <div className="fixed inset-0 z-[55]" onClick={() => setOpen(false)} />}
     </>
