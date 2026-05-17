@@ -761,7 +761,7 @@ const rules: BotRule[] = [
     responses: [
       'EDA (Exploratory Data Analysis) adalah tahap krusial untuk memahami data sebelum modeling. "Look before you leap!" 🔍',
       'Checklist EDA lengkap:\n✅ Shape & dimensi dataset\n✅ Tipe data setiap kolom\n✅ Missing values\n✅ Duplikat\n✅ Statistik deskriptif\n✅ Distribusi setiap variabel\n✅ Outlier\n✅ Korelasi antar variabel\n✅ Distribusi target variable\n✅ Insight bisnis awal',
-      'Automated EDA dengan library:\n```python\n# ydata-profiling (dulu pandas-profiling)\nfrom ydata_profiling import ProfileReport\nreport = ProfileReport(df)\nreport.to_notebook_iframe()\n\n# Sweetviz\nimport sweetviz as sv\nreport = sv.analyze(df)\nreport.show_html("report.html")\n```',
+      'Automated EDA dengan library:\n```python\n# ydata-p  rofiling (dulu pandas-profiling)\nfrom ydata_profiling import ProfileReport\nreport = ProfileReport(df)\nreport.to_notebook_iframe()\n\n# Sweetviz\nimport sweetviz as sv\nreport = sv.analyze(df)\nreport.show_html("report.html")\n```',
       'EDA questions yang harus dijawab:\n1. Berapa banyak data dan berapa fiturnya?\n2. Apakah ada missing values? Di mana?\n3. Bagaimana distribusi target variable?\n4. Fitur mana yang paling berkorelasi dengan target?\n5. Apakah ada data leak atau anomali? 🎯',
     ],
   },
