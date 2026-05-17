@@ -285,7 +285,7 @@ function ProjectModal({ open, project, onClose, onSave }: {
 // PROJECTS PAGE
 // ============================================
 export function ProjectsPage() {
-  const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject, dataVersion } = useApp();
+  const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject, dataVersion, requireAuth } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -315,21 +315,25 @@ export function ProjectsPage() {
   }
 
   async function handleSave(project: Project) {
-    await saveProject(project);
-    pushProjectAfterSave(project);
-    const updated = await getAllProjects();
-    setProjects(updated);
-    setModalOpen(false);
-    setEditingProject(null);
-    showSaved();
-    addToast({ message: `Project "${project.name}" saved`, type: 'success' });
+    requireAuth(async () => {
+      await saveProject(project);
+      pushProjectAfterSave(project);
+      const updated = await getAllProjects();
+      setProjects(updated);
+      setModalOpen(false);
+      setEditingProject(null);
+      showSaved();
+      addToast({ message: `Project "${project.name}" saved`, type: 'success' });
+    });
   }
 
   async function handleDelete(id: string) {
-    await deleteProject(id);
-    deleteRemoteProject(id);
-    setProjects(prev => prev.filter(p => p.id !== id));
-    addToast({ message: 'Project deleted', type: 'info' });
+    requireAuth(async () => {
+      await deleteProject(id);
+      deleteRemoteProject(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+      addToast({ message: 'Project deleted', type: 'info' });
+    });
   }
 
   function handleEdit(project: Project) {
@@ -350,7 +354,7 @@ export function ProjectsPage() {
         <Button
           variant="primary"
           icon={<Plus size={14} />}
-          onClick={() => { setEditingProject(null); setModalOpen(true); }}
+          onClick={() => requireAuth(() => { setEditingProject(null); setModalOpen(true); })}
         >
           New Project
         </Button>
@@ -398,7 +402,7 @@ export function ProjectsPage() {
           title={search ? 'No projects found' : 'No projects yet'}
           description={search ? 'Try a different search term.' : 'Create your first project to get started.'}
           action={
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => { setEditingProject(null); setModalOpen(true); }}>
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => requireAuth(() => { setEditingProject(null); setModalOpen(true); })}>
               Create Project
             </Button>
           }

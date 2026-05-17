@@ -9,10 +9,9 @@ import { KanbanPage } from './features/Kanban';
 import { NotesPage } from './features/Notes';
 import { AnalyticsPage } from './features/Analytics';
 import { SettingsPage } from './features/Settings';
-import { LoginPage } from './features/LoginPage';
-import { RegisterPage } from './features/RegisterPage';
-import { ForgotPassword } from './features/ForgotPassword';
 import { LandingPage } from './features/Landing';
+import { AuthModal } from './features/AuthModal';
+import { ChatBubble } from './components/ChatBubble';
 import { CookieConsent } from './components/CookieConsent';
 import { seedDatabase } from './database/db';
 import './index.css';
@@ -74,6 +73,8 @@ function AppShell({ onGoToLanding }: AppShellProps) {
       />
 
       <ToastContainer />
+
+      <ChatBubble />
     </div>
   );
 }
@@ -82,11 +83,10 @@ function AppShell({ onGoToLanding }: AppShellProps) {
 // ROOT APP
 // ============================================
 function AppInner() {
-  const { isAuthenticated, authReady } = useApp();
+  const { authReady } = useApp();
   const [dbReady, setDbReady] = useState(false);
   const [onLanding, setOnLanding] = useState(true);
-  const [showRegister, setShowRegister] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const landingDismissed = sessionStorage.getItem('futurestack-landing-dismissed') === 'true';
 
   useEffect(() => {
     seedDatabase()
@@ -96,6 +96,11 @@ function AppInner() {
         setDbReady(true);
       });
   }, []);
+
+  function handleEnter() {
+    setOnLanding(false);
+    sessionStorage.setItem('futurestack-landing-dismissed', 'true');
+  }
 
   if (!dbReady || !authReady) {
     return (
@@ -110,21 +115,16 @@ function AppInner() {
     );
   }
 
-  if (onLanding) {
-    return <LandingPage onEnter={() => setOnLanding(false)} />;
+  if (onLanding && !landingDismissed) {
+    return <LandingPage onEnter={handleEnter} />;
   }
 
-  if (!isAuthenticated) {
-    if (showForgotPassword) {
-      return <ForgotPassword onBackToLogin={() => setShowForgotPassword(false)} />;
-    }
-    if (showRegister) {
-      return <RegisterPage onSwitchToLogin={() => setShowRegister(false)} />;
-    }
-    return <LoginPage onSwitchToRegister={() => setShowRegister(true)} onSwitchToForgotPassword={() => setShowForgotPassword(true)} />;
-  }
-
-  return <AppShell onGoToLanding={() => setOnLanding(true)} />;
+  return (
+    <>
+      <AppShell onGoToLanding={() => { setOnLanding(true); sessionStorage.removeItem('futurestack-landing-dismissed'); }} />
+      <AuthModal />
+    </>
+  );
 }
 
 export default function App() {

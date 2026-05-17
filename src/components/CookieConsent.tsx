@@ -27,7 +27,7 @@ export function CookieConsent() {
       <div className="fixed inset-0 bg-black/40" />
       <div className="relative w-full max-w-xl border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard dark:shadow-[6px_6px_0px_0px_#a8a6ff] p-5 pointer-events-auto">
         <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea] mb-4">
-          This app uses cookies for authentication (Google OAuth) and local storage for offline functionality.
+          This app uses cookies for authentication and local storage for offline functionality.
           By continuing, you agree to our use of cookies.
         </p>
         <div className="flex gap-3 justify-end">

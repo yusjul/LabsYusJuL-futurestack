@@ -1,8 +1,8 @@
-﻿import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+﻿import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import type { Theme, ConnectionStatus, Toast, ActivePage, UserSettings, NotificationEntry, Project, Task, Note } from '../types';
 import { getSettings, saveSettings } from '../database/db';
 import * as syncEngine from '../database/sync';
-import { supabase, signInWithGoogle as supabaseSignInWithGoogle, signInWithEmail as supabaseSignInWithEmail, signUpWithEmail as supabaseSignUpWithEmail, resetPasswordForEmail as supabaseResetPasswordForEmail, signOut as supabaseSignOut } from '../database/supabase';
+import { supabase, signInWithUsername as supabaseSignInWithUsername, signUpWithProfile as supabaseSignUpWithProfile, resetPasswordForEmail as supabaseResetPasswordForEmail, signOut as supabaseSignOut } from '../database/supabase';
 import type { User } from '@supabase/supabase-js';
 
 type SyncStatusValue = 'idle' | 'syncing' | 'success' | 'error';
@@ -25,6 +25,7 @@ interface AppState {
   isAuthenticated: boolean;
   dataVersion: number;
   authReady: boolean;
+  showAuthModal: boolean;
 }
 
 interface AppActions {
@@ -39,11 +40,12 @@ interface AppActions {
   updateSettings: (settings: Partial<UserSettings>) => void;
   showSaved: () => void;
   clearNotifications: () => void;
-  signInWithGoogle: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  signInWithUsername: (username: string, password: string) => Promise<void>;
+  signUpWithProfile: (username: string, email: string, gender: string, password: string) => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  requireAuth: (callback: () => void | Promise<void>) => void;
+  setShowAuthModal: (open: boolean) => void;
   syncNow: () => Promise<void>;
   pushProjectAfterSave: (project: Project) => Promise<void>;
   deleteRemoteProject: (id: string) => Promise<void>;
@@ -90,6 +92,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [syncResult, setSyncResult] = useState<syncEngine.SyncResult | null>(null);
   const [dataVersion, setDataVersion] = useState(0);
   const [authReady, setAuthReady] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const pendingActionRef = useRef<(() => void) | null>(null);
 
   // Load settings from DB on mount
   useEffect(() => {
@@ -120,18 +124,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hasSupabaseCreds) { setAuthReady(true); return; }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    (async () => {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        try {
+          const params = new URLSearchParams(hash.replace('#', ''));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          if (accessToken && refreshToken) {
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+          }
+        } catch (err) {
+          console.error('OAuth session recovery failed:', err);
+        } finally {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
         syncNow();
       }
-    }).finally(() => setAuthReady(true));
+    })().finally(() => setAuthReady(true));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
+        setShowAuthModal(false);
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           syncNow();
+          const action = pendingActionRef.current;
+          pendingActionRef.current = null;
+          if (action) {
+            setTimeout(action, 100);
+          }
         }
       } else {
         setUser(null);
@@ -279,16 +309,12 @@ function applyAccent(accent: string) {
     }
   }, [user]);
 
-  const signInWithGoogle = useCallback(async () => {
-    await supabaseSignInWithGoogle();
+  const signInWithUsername = useCallback(async (username: string, password: string) => {
+    await supabaseSignInWithUsername(username, password);
   }, []);
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
-    await supabaseSignInWithEmail(email, password);
-  }, []);
-
-  const signUpWithEmail = useCallback(async (email: string, password: string) => {
-    const result = await supabaseSignUpWithEmail(email, password);
+  const signUpWithProfile = useCallback(async (username: string, email: string, gender: string, password: string) => {
+    const result = await supabaseSignUpWithProfile(username, email, gender, password);
     if (result?.user && !result.session) {
       throw new Error('Please check your email for a confirmation link.');
     }
@@ -303,6 +329,22 @@ function applyAccent(accent: string) {
     setUser(null);
     setSyncStatus('idle');
     setSyncResult(null);
+  }, []);
+
+  const requireAuth = useCallback((callback: () => void | Promise<void>) => {
+    if (user) {
+      callback();
+    } else {
+      pendingActionRef.current = callback as () => void;
+      setShowAuthModal(true);
+    }
+  }, [user]);
+
+  const setShowAuthModalAction = useCallback((open: boolean) => {
+    if (!open) {
+      pendingActionRef.current = null;
+    }
+    setShowAuthModal(open);
   }, []);
 
   const pushProjectAfterSave = useCallback(async (project: Project) => {
@@ -361,10 +403,10 @@ function applyAccent(accent: string) {
 
   const value: AppContextValue = {
     theme, connectionStatus, toasts, activePage, sidebarOpen, settings, autoSaveLabel, notificationLog,
-    user, syncStatus, syncResult, isAuthenticated: !!user, dataVersion, authReady,
+    user, syncStatus, syncResult, isAuthenticated: !!user, dataVersion, authReady, showAuthModal,
     setTheme, toggleTheme, setConnectionStatus, addToast, removeToast,
     setActivePage, setSidebarOpen, toggleSidebar, updateSettings, showSaved, clearNotifications,
-    signInWithGoogle, signInWithEmail, signUpWithEmail, resetPasswordForEmail, signOut: signOutAction, syncNow,
+    signInWithUsername, signUpWithProfile, resetPasswordForEmail, signOut: signOutAction, syncNow, requireAuth, setShowAuthModal: setShowAuthModalAction,
     pushProjectAfterSave, deleteRemoteProject,
     pushTaskAfterSave, deleteRemoteTask,
     pushNoteAfterSave, deleteRemoteNote,

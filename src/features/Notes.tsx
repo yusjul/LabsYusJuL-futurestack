@@ -114,7 +114,7 @@ function MarkdownView({ content }: { content: string }) {
 // NOTES PAGE
 // ============================================
 export function NotesPage() {
-  const { addToast, showSaved, dataVersion } = useApp();
+  const { addToast, showSaved, dataVersion, requireAuth } = useApp();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
@@ -190,40 +190,46 @@ export function NotesPage() {
   }
 
   async function createNote() {
-    const now = new Date().toISOString();
-    const note: Note = {
-      id: `note-${Date.now()}`,
-      title: 'Untitled Note',
-      content: '# New Note\n\nStart writing...',
-      tags: [],
-      pinned: false,
-      createdAt: now,
-      updatedAt: now,
-    };
-    await handleSave(note);
-    setActiveNote(note);
-    setEditTitle(note.title);
-    setEditContent(note.content);
-    setIsEditing(true);
+    requireAuth(async () => {
+      const now = new Date().toISOString();
+      const note: Note = {
+        id: `note-${Date.now()}`,
+        title: 'Untitled Note',
+        content: '# New Note\n\nStart writing...',
+        tags: [],
+        pinned: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await handleSave(note);
+      setActiveNote(note);
+      setEditTitle(note.title);
+      setEditContent(note.content);
+      setIsEditing(true);
+    });
   }
 
   async function handlePin(note: Note) {
-    const updated = { ...note, pinned: !note.pinned, updatedAt: new Date().toISOString() };
-    await handleSave(updated);
-    addToast({ message: updated.pinned ? 'Note pinned' : 'Note unpinned', type: 'info' });
+    requireAuth(async () => {
+      const updated = { ...note, pinned: !note.pinned, updatedAt: new Date().toISOString() };
+      await handleSave(updated);
+      addToast({ message: updated.pinned ? 'Note pinned' : 'Note unpinned', type: 'info' });
+    });
   }
 
   async function confirmDelete() {
-    if (!noteToDelete) return;
-    await deleteNote(noteToDelete);
-    const updated = notes.filter(n => n.id !== noteToDelete);
-    setNotes(updated);
-    if (activeNote?.id === noteToDelete) {
-      setActiveNote(updated[0] ?? null);
-    }
-    setDeleteModalOpen(false);
-    setNoteToDelete(null);
-    addToast({ message: 'Note deleted', type: 'info' });
+    requireAuth(async () => {
+      if (!noteToDelete) return;
+      await deleteNote(noteToDelete);
+      const updated = notes.filter(n => n.id !== noteToDelete);
+      setNotes(updated);
+      if (activeNote?.id === noteToDelete) {
+        setActiveNote(updated[0] ?? null);
+      }
+      setDeleteModalOpen(false);
+      setNoteToDelete(null);
+      addToast({ message: 'Note deleted', type: 'info' });
+    });
   }
 
   return (

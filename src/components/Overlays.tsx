@@ -1,4 +1,4 @@
-﻿import { type ReactNode } from 'react';
+﻿import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 // ============================================
@@ -21,6 +21,15 @@ const sizeStyles = {
 };
 
 export function Modal({ open, onClose, title, children, size = 'md', footer }: ModalProps) {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -32,7 +41,7 @@ export function Modal({ open, onClose, title, children, size = 'md', footer }: M
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-on-surface/30 dark:bg-black/50 modal-backdrop"
+        className="absolute inset-0 bg-on-surface/30 dark:bg-black/50 backdrop-blur-sm modal-backdrop"
         onClick={onClose}
         aria-hidden="true"
       />

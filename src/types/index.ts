@@ -96,6 +96,16 @@ export interface StatCard {
 }
 
 // ============================================
+// PROFILE TYPES
+// ============================================
+export interface UserProfile {
+  id: string;
+  username: string;
+  gender: 'male' | 'female' | 'other';
+  created_at: string;
+}
+
+// ============================================
 // SETTINGS TYPES
 // ============================================
 export interface UserSettings {
@@ -121,6 +131,19 @@ export interface Toast {
 
 export type ActivePage = 'dashboard' | 'projects' | 'kanban' | 'notes' | 'analytics' | 'settings' | 'login';
 
+// ============================================
+// CHAT TYPES
+// ============================================
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+// ============================================
+// NOTIFICATION TYPES
+// ============================================
 export interface NotificationEntry {
   id: string;
   message: string;

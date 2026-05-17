@@ -173,7 +173,7 @@ function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => v
 }
 
 export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
-  const { theme, toggleTheme, connectionStatus, activePage, autoSaveLabel, addToast, setActivePage, notificationLog, user } = useApp();
+  const { theme, toggleTheme, connectionStatus, activePage, autoSaveLabel, addToast, setActivePage, notificationLog, user, requireAuth } = useApp();
   const conn = connectionConfig[connectionStatus];
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -288,9 +288,9 @@ export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
           { id: 'note', label: 'New Note', icon: <FileText size={12} /> },
         ]}
         onSelect={id => {
-          if (id === 'task') { setActivePage('kanban'); addToast({ message: 'Add a new task in Kanban', type: 'info' }); }
-          if (id === 'project') { setActivePage('projects'); addToast({ message: 'Add a new project', type: 'info' }); }
-          if (id === 'note') { setActivePage('notes'); addToast({ message: 'Create a new note', type: 'info' }); }
+          if (id === 'task') { requireAuth(() => { setActivePage('kanban'); addToast({ message: 'Add a new task in Kanban', type: 'info' }); }); }
+          if (id === 'project') { requireAuth(() => { setActivePage('projects'); addToast({ message: 'Add a new project', type: 'info' }); }); }
+          if (id === 'note') { requireAuth(() => { setActivePage('notes'); addToast({ message: 'Create a new note', type: 'info' }); }); }
         }}
         align="right"
       />

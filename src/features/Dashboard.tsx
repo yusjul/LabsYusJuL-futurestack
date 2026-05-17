@@ -130,7 +130,7 @@ function ProjectMini({ project }: { project: Project }) {
 // DASHBOARD PAGE
 // ============================================
 export function DashboardPage() {
-  const { setActivePage, addToast } = useApp();
+  const { setActivePage, addToast, requireAuth } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -282,7 +282,7 @@ export function DashboardPage() {
             variant="primary"
             size="sm"
             icon={<FolderKanban size={14} />}
-            onClick={() => setActivePage('projects')}
+            onClick={() => requireAuth(() => setActivePage('projects'))}
           >
             New Project
           </Button>

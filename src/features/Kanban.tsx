@@ -353,7 +353,7 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
 // KANBAN PAGE
 // ============================================
 export function KanbanPage() {
-  const { addToast, showSaved, dataVersion } = useApp();
+  const { addToast, showSaved, dataVersion, requireAuth } = useApp();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -371,67 +371,77 @@ export function KanbanPage() {
   }
 
   async function handleSave(task: Task) {
-    await saveTask(task);
-    const updated = await getAllTasks();
-    setTasks(updated);
-    setModalOpen(false);
-    setEditingTask(null);
-    showSaved();
-    addToast({ message: `Task "${task.title}" saved`, type: 'success' });
+    requireAuth(async () => {
+      await saveTask(task);
+      const updated = await getAllTasks();
+      setTasks(updated);
+      setModalOpen(false);
+      setEditingTask(null);
+      showSaved();
+      addToast({ message: `Task "${task.title}" saved`, type: 'success' });
+    });
   }
 
   async function handleDelete(id: string) {
-    await deleteTask(id);
-    setTasks(prev => prev.filter(t => t.id !== id));
-    addToast({ message: 'Task deleted', type: 'info' });
+    requireAuth(async () => {
+      await deleteTask(id);
+      setTasks(prev => prev.filter(t => t.id !== id));
+      addToast({ message: 'Task deleted', type: 'info' });
+    });
   }
 
   async function handleMove(id: string, status: TaskStatus) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    const updated = { ...task, status, updatedAt: new Date().toISOString() };
-    await saveTask(updated);
-    setTasks(prev => prev.map(t => t.id === id ? updated : t));
-    showSaved();
+    requireAuth(async () => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      const updated = { ...task, status, updatedAt: new Date().toISOString() };
+      await saveTask(updated);
+      setTasks(prev => prev.map(t => t.id === id ? updated : t));
+      showSaved();
+    });
   }
 
   async function handleDropTask(taskId: string, targetColId: TaskStatus, targetIndex: number) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+    requireAuth(async () => {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
-    const sameCol = task.status === targetColId;
-    let targetTasks = tasks
-      .filter(t => t.status === targetColId && t.id !== taskId)
-      .sort((a, b) => a.order - b.order);
-    const insertIdx = Math.min(targetIndex, targetTasks.length);
-    targetTasks.splice(insertIdx, 0, { ...task, status: targetColId });
-    const updatedTasks = targetTasks.map((t, i) => ({
-      ...t,
-      order: i,
-      updatedAt: new Date().toISOString(),
-    }));
+      const sameCol = task.status === targetColId;
+      let targetTasks = tasks
+        .filter(t => t.status === targetColId && t.id !== taskId)
+        .sort((a, b) => a.order - b.order);
+      const insertIdx = Math.min(targetIndex, targetTasks.length);
+      targetTasks.splice(insertIdx, 0, { ...task, status: targetColId });
+      const updatedTasks = targetTasks.map((t, i) => ({
+        ...t,
+        order: i,
+        updatedAt: new Date().toISOString(),
+      }));
 
-    if (!sameCol) {
-      const sourceTasks = tasks
-        .filter(t => t.status === task.status && t.id !== taskId)
-        .sort((a, b) => a.order - b.order)
-        .map((t, i) => ({ ...t, order: i, updatedAt: t.updatedAt }));
-      await Promise.all([...updatedTasks, ...sourceTasks].map(t => saveTask(t)));
-    } else {
-      await Promise.all(updatedTasks.map(t => saveTask(t)));
-    }
+      if (!sameCol) {
+        const sourceTasks = tasks
+          .filter(t => t.status === task.status && t.id !== taskId)
+          .sort((a, b) => a.order - b.order)
+          .map((t, i) => ({ ...t, order: i, updatedAt: t.updatedAt }));
+        await Promise.all([...updatedTasks, ...sourceTasks].map(t => saveTask(t)));
+      } else {
+        await Promise.all(updatedTasks.map(t => saveTask(t)));
+      }
 
-    const all = await getAllTasks();
-    setTasks(all);
-    setDraggedTaskId(null);
-    setDragOverColId(null);
-    showSaved();
+      const all = await getAllTasks();
+      setTasks(all);
+      setDraggedTaskId(null);
+      setDragOverColId(null);
+      showSaved();
+    });
   }
 
   function handleAdd(status: TaskStatus) {
-    setDefaultStatus(status);
-    setEditingTask(null);
-    setModalOpen(true);
+    requireAuth(() => {
+      setDefaultStatus(status);
+      setEditingTask(null);
+      setModalOpen(true);
+    });
   }
 
   function handleEdit(task: Task) {
