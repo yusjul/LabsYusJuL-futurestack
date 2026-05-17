@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown, ArrowRight, Zap, Activity, FolderKanban, FileText, CheckSquare, Download } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { getAllProjects, getAllTasks, getAllNotes } from '../database/db';
@@ -30,7 +30,7 @@ function StatCard({ data }: { data: StatCardData }) {
       className={`border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] p-3 md:p-5 ${data.shadowColor} transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 group`}
     >
       <div className="flex items-start justify-between mb-1 md:mb-3">
-        <p className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#777584]">{data.label}</p>
+        <p className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#c8c4d4]">{data.label}</p>
         <div className={`w-7 h-7 md:w-9 md:h-9 border-2 border-on-surface dark:border-[#464552] flex items-center justify-center ${data.bgIcon}`}>
           <Icon size={12} className="md:inline text-on-surface dark:text-[#e5e1ea]" />
         </div>
@@ -45,7 +45,7 @@ function StatCard({ data }: { data: StatCardData }) {
         <span className={`font-mono text-xs ${isPositive ? 'text-[#84cc16]' : 'text-[#fa7a7a]'}`}>
           {isPositive ? '+' : ''}{data.change}%
         </span>
-        <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">{data.changeLabel}</span>
+        <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{data.changeLabel}</span>
       </div>
     </article>
   );
@@ -66,9 +66,9 @@ function ActivityItem({ title, meta, type }: { title: string; meta: string; type
       <div className={`w-2 h-2 mt-1.5 rounded-full ${cfg.color} flex-shrink-0`} />
       <div className="flex-1 min-w-0">
         <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea] truncate">{title}</p>
-        <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mt-0.5">{meta}</p>
+        <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-0.5">{meta}</p>
       </div>
-      <span className={`font-mono text-[10px] px-1.5 py-0.5 border border-on-surface dark:border-[#464552] text-on-surface-variant dark:text-[#777584]`}>{cfg.label}</span>
+      <span className={`font-mono text-[10px] px-1.5 py-0.5 border border-on-surface dark:border-[#464552] text-on-surface-variant dark:text-[#c8c4d4]`}>{cfg.label}</span>
     </div>
   );
 }
@@ -103,7 +103,7 @@ function ProjectMini({ project }: { project: Project }) {
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="font-headline font-semibold text-sm text-on-surface dark:text-[#e5e1ea]">{project.name}</p>
-          <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase">{project.status}</span>
+          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase">{project.status}</span>
         </div>
         <span className="font-mono text-xs text-on-surface dark:text-[#e5e1ea] font-bold">{project.progress}%</span>
       </div>
@@ -119,7 +119,7 @@ function ProjectMini({ project }: { project: Project }) {
           aria-label={`${project.name} progress: ${project.progress}%`}
         />
       </div>
-      <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mt-2">
+      <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-2">
         {project.completedTasks}/{project.taskCount} tasks
       </p>
     </article>
@@ -224,7 +224,7 @@ export function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Zap size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)]" />
-            <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-widest">System Overview</span>
+            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">System Overview</span>
           </div>
           <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">
             Dashboard
@@ -252,7 +252,7 @@ export function DashboardPage() {
                   <span className="text-xs">📄</span>
                   <div>
                     <p className="font-medium">JSON</p>
-                    <p className="text-[10px] text-on-surface-variant dark:text-[#777584]">All data in one file</p>
+                    <p className="text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">All data in one file</p>
                   </div>
                 </button>
                 <button
@@ -262,7 +262,7 @@ export function DashboardPage() {
                   <span className="text-xs">📊</span>
                   <div>
                     <p className="font-medium">CSV</p>
-                    <p className="text-[10px] text-on-surface-variant dark:text-[#777584]">Separate files per entity</p>
+                    <p className="text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">Separate files per entity</p>
                   </div>
                 </button>
                 <button
@@ -272,7 +272,7 @@ export function DashboardPage() {
                   <span className="text-xs">🖨️</span>
                   <div>
                     <p className="font-medium">PDF</p>
-                    <p className="text-[10px] text-on-surface-variant dark:text-[#777584]">A4 report, ready to print</p>
+                    <p className="text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">A4 report, ready to print</p>
                   </div>
                 </button>
               </div>
@@ -330,7 +330,7 @@ export function DashboardPage() {
         <section aria-label="Recent activity" className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]">
           <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
             <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Recent Activity</h2>
-            <Activity size={14} className="text-on-surface-variant dark:text-[#777584]" />
+            <Activity size={14} className="text-on-surface-variant dark:text-[#c8c4d4]" />
           </div>
           <div className="px-3 md:px-5 py-2">
             {loading ? (
@@ -387,7 +387,7 @@ export function DashboardPage() {
                 <div className={`w-6 h-6 md:w-8 md:h-8 ${col.color} mx-auto mb-1 md:mb-2 flex items-center justify-center border border-on-surface dark:border-[#464552]`}>
                   <span className="font-mono text-xs md:text-sm font-bold text-white dark:text-[#12121a]">{col.count}</span>
                 </div>
-                <p className="font-mono text-[10px] md:text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-wide">{col.label}</p>
+                <p className="font-mono text-[10px] md:text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-wide">{col.label}</p>
               </div>
             ))}
         </div>

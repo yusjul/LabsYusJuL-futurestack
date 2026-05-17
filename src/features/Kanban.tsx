@@ -25,7 +25,7 @@ const priorityConfig: Record<Task['priority'], { color: string; icon: typeof Ale
   critical: { color: 'text-error dark:text-[#fa7a7a] border-error dark:border-[#fa7a7a]', icon: AlertCircle },
   high: { color: 'text-[#fa7a7a] border-[#fa7a7a]', icon: null },
   medium: { color: 'text-[#eab308] border-[#eab308]', icon: null },
-  low: { color: 'text-on-surface-variant dark:text-[#777584] border-on-surface-variant dark:border-[#464552]', icon: null },
+  low: { color: 'text-on-surface-variant dark:text-[#c8c4d4] border-on-surface-variant dark:border-[#464552]', icon: null },
 };
 
 // ============================================
@@ -64,7 +64,7 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
         aria-label={`Task: ${task.title}`}
       >
       <div className="flex items-start gap-2">
-        <GripVertical size={14} className="text-on-surface-variant dark:text-[#464552] mt-0.5 flex-shrink-0" aria-hidden="true" />
+        <GripVertical size={14} className="text-on-surface-variant dark:text-[#c8c4d4] mt-0.5 flex-shrink-0" aria-hidden="true" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className={`font-body text-body-sm text-on-surface dark:text-[#e5e1ea] font-medium ${task.status === 'done' ? 'line-through opacity-60' : ''}`}>
@@ -97,14 +97,14 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
           </div>
 
           {task.description && (
-            <p className="font-body text-xs text-on-surface-variant dark:text-[#777584] mt-1 line-clamp-2">{task.description}</p>
+            <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-1 line-clamp-2">{task.description}</p>
           )}
 
           {/* Tags */}
           {task.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {task.tags.slice(0, 3).map(tag => (
-                <span key={tag} className="flex items-center gap-0.5 font-mono text-[10px] px-1.5 py-0.5 border border-on-surface-variant/40 dark:border-[#464552] text-on-surface-variant dark:text-[#777584]">
+                <span key={tag} className="flex items-center gap-0.5 font-mono text-[10px] px-1.5 py-0.5 border border-on-surface-variant/40 dark:border-[#464552] text-on-surface-variant dark:text-[#c8c4d4]">
                   <Tag size={8} />
                   {tag}
                 </span>
@@ -123,7 +123,7 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
               </span>
             )}
             {task.dueDate && (
-              <span className="flex items-center gap-1 font-mono text-[10px] text-on-surface-variant dark:text-[#777584]">
+              <span className="flex items-center gap-1 font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">
                 <CalendarDays size={10} />
                 {new Date(task.dueDate).toLocaleDateString()}
               </span>
@@ -210,7 +210,7 @@ function KanbanCol({ col, tasks, projectMap, onEdit, onDelete, onMove, onAdd, on
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`} />
           <span className="font-mono text-xs font-bold text-on-surface dark:text-[#e5e1ea] uppercase">{col.label}</span>
-          <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584] bg-surface-container dark:bg-[#252533] px-1.5 py-0.5 border border-on-surface dark:border-[#464552]">
+          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] bg-surface-container dark:bg-[#252533] px-1.5 py-0.5 border border-on-surface dark:border-[#464552]">
             {tasks.length}
           </span>
         </div>
@@ -234,7 +234,7 @@ function KanbanCol({ col, tasks, projectMap, onEdit, onDelete, onMove, onAdd, on
       >
         {tasks.length === 0 && !draggedTaskId ? (
           <div className="text-center py-8">
-            <p className="font-mono text-xs text-on-surface-variant dark:text-[#464552]">No tasks</p>
+            <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">No tasks</p>
           </div>
         ) : (
           <>
@@ -372,6 +372,8 @@ export function KanbanPage() {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<TaskStatus | null>(null);
 
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
+
   // Helper: update project stats after any task change
   async function updateProjectStats(projectId: string) {
     if (!projectId) return;
@@ -399,9 +401,10 @@ export function KanbanPage() {
   }, [dataVersion]);
 
   const projectMap = new Map(projects.map(p => [p.id, p.name]));
+  const filteredTasks = selectedProjectId === 'all' ? tasks : tasks.filter(t => t.projectId === selectedProjectId);
 
   function getColumnTasks(status: TaskStatus) {
-    return tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
+    return filteredTasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
   }
 
   async function handleSave(task: Task) {
@@ -619,17 +622,27 @@ export function KanbanPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 mb-3 md:mb-6">
         <div>
           <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Kanban Board</h1>
-          <p className="font-body text-body-sm text-on-surface-variant dark:text-[#777584] mt-1">
-            {tasks.length} tasks across {columns.length} stages
+          <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">
+            {filteredTasks.length} tasks across {columns.length} stages
           </p>
         </div>
-        <Button
-          variant="primary"
-          icon={<Plus size={14} />}
-          onClick={() => handleAdd('todo')}
-        >
-          Add Task
-        </Button>
+        <div className="flex items-center gap-3">
+          <Select
+            value={selectedProjectId}
+            onChange={e => setSelectedProjectId(e.target.value)}
+            options={[
+              { value: 'all', label: 'All Projects' },
+              ...projects.filter(p => p.status !== 'archived').map(p => ({ value: p.id, label: p.name }))
+            ]}
+          />
+          <Button
+            variant="primary"
+            icon={<Plus size={14} />}
+            onClick={() => handleAdd('todo')}
+          >
+            Add Task
+          </Button>
+        </div>
       </div>
 
       {/* Kanban Board — horizontal scroll on mobile/tablet */}

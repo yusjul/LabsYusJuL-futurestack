@@ -1,4 +1,4 @@
-﻿import {
+import {
   LayoutDashboard, FolderKanban, Columns3, FileText,
   BarChart3, Settings, ChevronRight, Zap, X
 } from 'lucide-react';
@@ -34,7 +34,7 @@ export function Sidebar() {
       <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-tertiary" />
 
       <nav className="flex-1 py-4 px-2">
-        <p className="px-3 mb-2 font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-widest">
+        <p className="px-3 mb-2 font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">
           Navigation
         </p>
         <ul role="list" className="space-y-0.5">
@@ -70,9 +70,9 @@ export function Sidebar() {
       <div className="px-4 py-4 border-t-2 border-on-surface dark:border-[#464552]">
         <div className="flex items-center gap-2 mb-2">
           <Zap size={12} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)]" />
-          <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">FutureStack v1.0</span>
+          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">FutureStack v1.0</span>
         </div>
-        <div className="font-mono text-xs text-on-surface-variant dark:text-[#464552]">
+        <div className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">
           Build: {new Date().toISOString().split('T')[0]}
         </div>
       </div>

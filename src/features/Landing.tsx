@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Zap, ArrowRight, BookOpen, Play, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 
@@ -169,7 +169,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             </span>
           </h1>
 
-          <div className="font-body text-xs text-on-surface-variant dark:text-[#777584] -mt-3">
+          <div className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] -mt-3">
             Tulis kode. Rusak sesuatu. Belajar. Ulangi.
           </div>
 
@@ -177,7 +177,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             Every line you write today builds the developer you become tomorrow.
           </p>
 
-          <p className="font-body text-xs text-on-surface-variant dark:text-[#777584] -mt-3">
+          <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] -mt-3">
             Setiap baris yang kau tulis hari ini membangun dirimu di masa depan.
           </p>
 
@@ -198,7 +198,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             </a>
           </div>
 
-          <div className="flex flex-col items-center gap-1 mt-4 text-on-surface-variant dark:text-[#464552]">
+          <div className="flex flex-col items-center gap-1 mt-4 text-on-surface-variant dark:text-[#c8c4d4]">
             <span className="font-mono text-xs">SCROLL TO EXPLORE</span>
             <ChevronDown size={16} className="animate-bounce" />
           </div>
@@ -224,8 +224,8 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             {stats.map((stat, i) => (
               <div key={stat.labelEn} className={`flex flex-col items-center justify-center py-4 px-2 md:py-10 md:px-4 bg-surface dark:bg-[#1e1e2a] text-center ${i < stats.length - 1 ? 'border-r-2 border-on-surface dark:border-[#a8a6ff]' : ''} ${i === 1 ? 'border-b-2 md:border-b-0 border-on-surface dark:border-[#a8a6ff]' : ''}`}>
                 <p className="font-headline font-bold text-[1.35rem] md:text-[2.5rem] leading-none text-primary dark:text-[var(--color-primary-fixed-dim-dark)] mb-1 md:mb-2">{stat.value}</p>
-                <p className="font-mono text-[9px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#777584]">{stat.labelEn}</p>
-                <p className="font-mono text-[8px] md:text-[10px] text-on-surface-variant/60 dark:text-[#777584]/60 mt-0.5">{stat.labelId}</p>
+                <p className="font-mono text-[9px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#c8c4d4]">{stat.labelEn}</p>
+                <p className="font-mono text-[8px] md:text-[10px] text-on-surface-variant/60 dark:text-[#c8c4d4]/60 mt-0.5">{stat.labelId}</p>
               </div>
             ))}
           </div>
@@ -237,13 +237,13 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between border-b-2 border-on-surface dark:border-[#464552] pb-4 mb-6 md:mb-12">
             <div>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mb-1">[ CORE MANTRAS ]</p>
+              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-1">[ CORE MANTRAS ]</p>
               <h2 id="mantras-heading" className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">
                 Principles to build by.
               </h2>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mt-1">Prinsip yang menuntun setiap langkah.</p>
+              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-1">Prinsip yang menuntun setiap langkah.</p>
             </div>
-            <span className="hidden md:block font-mono text-xs text-on-surface-variant dark:text-[#464552]">V_1.0.0</span>
+            <span className="hidden md:block font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">V_1.0.0</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
@@ -258,7 +258,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
 
                 <h3 className="font-headline font-bold text-sm md:text-headline-sm text-on-surface dark:text-[#e5e1ea] mb-1 md:mb-3">{feat.title}</h3>
                 <p className="font-body text-[11px] md:text-body-md text-on-surface-variant dark:text-[#c8c4d4]">{feat.descEn}</p>
-                <p className="font-body text-[10px] md:text-xs text-on-surface-variant/60 dark:text-[#777584]/60 mt-1 flex-grow">{feat.descId}</p>
+                <p className="font-body text-[10px] md:text-xs text-on-surface-variant/60 dark:text-[#c8c4d4]/60 mt-1 flex-grow">{feat.descId}</p>
 
                 <div className="mt-3 md:mt-6 pt-2 md:pt-4 border-t-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
                   <button
@@ -277,11 +277,11 @@ export function LandingPage({ onEnter }: LandingPageProps) {
       {/* ── PHILOSOPHY ── */}
       <section id="philosophy" className="w-full py-8 md:py-20 px-4 md:px-8 bg-surface-container-low dark:bg-[#12121a] border-b-2 border-on-surface dark:border-[#a8a6ff]" aria-labelledby="philosophy-heading">
         <div className="max-w-7xl mx-auto">
-          <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mb-2">[ PHILOSOPHY ]</p>
+          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-2">[ PHILOSOPHY ]</p>
           <h2 id="philosophy-heading" className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea] mb-2">
             Wisdom from the journey.
           </h2>
-          <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mb-4 md:mb-12">Kebijaksanaan dari setiap perjalanan.</p>
+          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-4 md:mb-12">Kebijaksanaan dari setiap perjalanan.</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
             {[
               {
@@ -312,7 +312,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                 </div>
                 <h3 className="font-headline font-bold text-sm md:text-headline-sm text-on-surface dark:text-[#e5e1ea] mb-1 md:mb-3">{item.title}</h3>
                 <p className="font-body text-[11px] md:text-body-md text-on-surface-variant dark:text-[#c8c4d4]">{item.en}</p>
-                <p className="font-body text-[10px] md:text-xs text-on-surface-variant/60 dark:text-[#777584]/60 mt-1">{item.id}</p>
+                <p className="font-body text-[10px] md:text-xs text-on-surface-variant/60 dark:text-[#c8c4d4]/60 mt-1">{item.id}</p>
               </div>
             ))}
           </div>
@@ -353,7 +353,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
           </div>
           <nav className="flex gap-2 flex-wrap justify-center" aria-label="Footer navigation">
             {['System Status', 'Journey', 'Philosophy', 'About'].map(item => (
-              <a key={item} href={`#${item === 'System Status' ? 'journey' : item.toLowerCase()}`} className="font-mono text-xs text-on-surface-variant dark:text-[#777584] hover:text-on-surface dark:hover:text-[#e5e1ea] px-2 py-1 hover:underline min-h-[44px] flex items-center">
+              <a key={item} href={`#${item === 'System Status' ? 'journey' : item.toLowerCase()}`} className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] hover:text-on-surface dark:hover:text-[#e5e1ea] px-2 py-1 hover:underline min-h-[44px] flex items-center">
                 {item}
               </a>
             ))}

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './store/AppContext';
 import { Topbar } from './components/Topbar';
 import { Sidebar, MobileSidebar } from './components/Sidebar';
@@ -51,7 +51,7 @@ function AppShell({ onGoToLanding }: AppShellProps) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background dark:bg-[#12121a]">
+    <div className="min-h-screen flex flex-col bg-background dark:bg-[#12121a] text-on-surface dark:text-[#e5e1ea]">
       {/* Skip to main content (accessibility) */}
       <a
         href="#main-content"
@@ -104,7 +104,7 @@ function AppInner() {
 
   if (!dbReady || !authReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-[#12121a]">
+      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-[#12121a] text-on-surface dark:text-[#e5e1ea]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-2 border-primary dark:border-[var(--color-primary-fixed-dim-dark)] border-t-transparent rounded-full animate-spin" />
           <p className="font-mono text-label-mono text-on-surface-variant dark:text-[#777584]">

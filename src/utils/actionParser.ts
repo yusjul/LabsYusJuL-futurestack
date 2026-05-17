@@ -35,12 +35,12 @@ function extractAfter(input: string, keywords: string[]): string {
     const idx = lower.indexOf(kw);
     if (idx !== -1) {
       const after = input.slice(idx + kw.length).trim()
-        .replace(/^(baru\s+)?/i, '')
-        .replace(/^(nama(nya)?\s+)/i, '')
-        .replace(/^(bernama\s+)/i, '')
-        .replace(/^(dengan\s+nama\s+)/i, '')
-        .replace(/^(judul(nya)?\s+)/i, '')
-        .replace(/^(yang\s+)/i, '')
+        .replace(/^(baru\b\s*)/i, '')
+        .replace(/^(nama(nya)?\b\s*)/i, '')
+        .replace(/^(bernama\b\s*)/i, '')
+        .replace(/^(dengan\s+nama\b\s*)/i, '')
+        .replace(/^(judul(nya)?\b\s*)/i, '')
+        .replace(/^(yang\b\s*)/i, '')
         .replace(/["""]/g, '')
         .trim();
       if (after.length > 0) return after;
@@ -61,13 +61,13 @@ const actionRules: ActionRule[] = [
   {
     type: 'add_task_to_project',
     patterns: [
-      /(?:tambah(?:kan|in)?|add|buat(?:kan)?)\s+(?:task|tugas)\s+(.+?)\s+(?:ke|di|pada|into|to)\s+(?:project|proyek|projek)\s+(.+)/i,
+      /(?:tambah(?:kan|in)?|add|buat(?:kan)?)\s+(?:task|taks|tugas|todo)\s+(.+?)\s+(?:ke|di|pada|into|to)\s+(?:project|proyek|projek)\s+(.+)/i,
     ],
-    extract: (match) => {
+    extract: (match, input) => {
       const title = match[1]?.trim().replace(/["""]/g, '') || '';
       const projectName = match[2]?.trim().replace(/["""]/g, '') || '';
       // Reject if task title looks like a question
-      if (isQuestionPhrase(title)) return { title: '', projectName: '' };
+      if (isQuestionPhrase(input) || isQuestionPhrase(title)) return { _abort: 'true' };
       return { title, projectName };
     },
     requiresAuth: true,
@@ -84,22 +84,24 @@ const actionRules: ActionRule[] = [
       // "add project X"
       /add\s+(?:a\s+)?(?:new\s+)?project/i,
     ],
-    extract: (_m, input) => ({
-      name: extractAfter(input, ['project ', 'proyek ', 'projek ', 'projectnya ', 'proyeknya ']),
-    }),
+    extract: (_m, input) => {
+      const name = extractAfter(input, ['project ', 'proyek ', 'projek ', 'projectnya ', 'proyeknya ']);
+      if (isQuestionPhrase(input) || isQuestionPhrase(name)) return { _abort: 'true' };
+      return { name };
+    },
     requiresAuth: true,
   },
   // === CREATE TASK (bisa tanpa nama) ===
   {
     type: 'create_task',
     patterns: [
-      /(?:buat(?:kan|in)?|create|tambah(?:kan|in)?|bikin)\s+(?:task|tugas|todo)(?:nya)?\b/i,
-      /(?:tolong|coba|mau|ingin|minta)\s+(?:buat(?:kan|in)?|bikin)\s+(?:task|tugas|todo)(?:nya)?\b/i,
+      /(?:buat(?:kan|in)?|create|tambah(?:kan|in)?|bikin)\s+(?:task|taks|tugas|todo)(?:nya)?\b/i,
+      /(?:tolong|coba|mau|ingin|minta)\s+(?:buat(?:kan|in)?|bikin)\s+(?:task|taks|tugas|todo)(?:nya)?\b/i,
     ],
     extract: (_m, input) => {
-      const title = extractAfter(input, ['task ', 'tugas ', 'todo ', 'tasknya ', 'tugasnya ']);
-      // Jika judulnya kalimat tanya → kosongkan (akan ditanyakan AI)
-      if (isQuestionPhrase(title)) return { title: '' };
+      const title = extractAfter(input, ['task ', 'taks ', 'tugas ', 'todo ', 'tasknya ', 'taksnya ', 'tugasnya ']);
+      // Jika kalimat tanya → batalkan parsing action dan lempar ke AI biasa
+      if (isQuestionPhrase(input) || isQuestionPhrase(title)) return { _abort: 'true' };
       return { title };
     },
     requiresAuth: true,
@@ -111,25 +113,27 @@ const actionRules: ActionRule[] = [
       /(?:buat(?:kan|in)?|create|tambah(?:kan|in)?|bikin)\s+(?:note|notes|catatan)(?:nya)?\b/i,
       /(?:tolong|coba|mau|ingin|minta)\s+(?:buat(?:kan|in)?|bikin)\s+(?:note|notes|catatan)(?:nya)?\b/i,
     ],
-    extract: (_m, input) => ({
-      title: extractAfter(input, ['note ', 'notes ', 'catatan ', 'notenya ', 'catatannya ']),
-    }),
+    extract: (_m, input) => {
+      const title = extractAfter(input, ['note ', 'notes ', 'catatan ', 'notenya ', 'catatannya ']);
+      if (isQuestionPhrase(input) || isQuestionPhrase(title)) return { _abort: 'true' };
+      return { title };
+    },
     requiresAuth: true,
   },
   // === LIST ===
   {
     type: 'list_projects',
     patterns: [
-      /(?:lihat|tampilkan|show|list|daftar)\s+(?:semua\s+)?(?:project|proyek|projek)/i,
-      /(?:project|proyek|projek)\s+(?:apa\s+)?(?:saja|aja)/i,
+      /^(?:tolong\s+|coba\s+)?(?:lihat(?:kan)?|tampilkan|show|list|daftar)\s+(?:semua\s+)?(?:project|proyek|projek)/i,
+      /^(?:project|proyek|projek)\s+(?:apa\s+)?(?:saja|aja)/i,
     ],
     extract: () => ({}), requiresAuth: false,
   },
   {
     type: 'list_tasks',
     patterns: [
-      /(?:lihat|tampilkan|show|list|daftar)\s+(?:semua\s+)?(?:task|tugas|todo)/i,
-      /(?:task|tugas|todo)\s+(?:apa\s+)?(?:saja|aja)/i,
+      /^(?:tolong\s+|coba\s+)?(?:lihat(?:kan)?|tampilkan|show|list|daftar)\s+(?:semua\s+)?(?:task|taks|tugas|todo)/i,
+      /^(?:task|taks|tugas|todo)\s+(?:apa\s+)?(?:saja|aja)/i,
     ],
     extract: () => ({}), requiresAuth: false,
   },
@@ -137,9 +141,9 @@ const actionRules: ActionRule[] = [
   {
     type: 'count_tasks',
     patterns: [
-      /(?:berapa|how many|jumlah)\s+(?:task|tugas)\s+(?:di|di project|in|pada)?\s*(?:project|proyek|projek)?\s+(.+)/i,
-      /(?:task|tugas)\s+(?:di|dalam|in)\s+(?:project|proyek|projek)?\s*(.+?)\s+(?:berapa|ada berapa|jumlahnya)/i,
-      /(?:progress|status)\s+(?:project|proyek|projek)?\s*(.+)/i,
+      /(?:berapa|how many|jumlah)\s+(?:task|taks|tugas|todo)\s+(?:(?:di|in|pada)\s+)?(?:(?:project|proyek|projek)\s+)?(.+)/i,
+      /(?:task|taks|tugas|todo)\s+(?:(?:di|dalam|in)\s+)?(?:(?:project|proyek|projek)\s+)?(.+?)\s+(?:berapa|ada berapa|jumlahnya)/i,
+      /(?:progress|status)\s+(?:(?:project|proyek|projek)\s+)?(.+)/i,
     ],
     extract: (m) => ({ projectName: m[1]?.trim().replace(/["""?]/g, '') || '' }),
     requiresAuth: false,
@@ -153,7 +157,7 @@ const actionRules: ActionRule[] = [
   },
   {
     type: 'delete_task',
-    patterns: [/(?:hapus|delete|remove)\s+(?:task|tugas|todo)(?:nya)?\s+(.+)/i],
+    patterns: [/(?:hapus|delete|remove)\s+(?:task|taks|tugas|todo)(?:nya)?\s+(.+)/i],
     extract: (m) => ({ title: m[1]?.trim().replace(/["""]/g, '') || '' }),
     requiresAuth: true,
   },
@@ -176,7 +180,9 @@ export function parseAction(input: string): ParsedAction {
     for (const pattern of rule.patterns) {
       const match = trimmed.match(pattern);
       if (match) {
-        return { type: rule.type, params: rule.extract(match, trimmed), requiresAuth: rule.requiresAuth };
+        const extracted = rule.extract(match, trimmed);
+        if (extracted._abort) continue; // Skip ini jika di-abort oleh guard
+        return { type: rule.type, params: extracted, requiresAuth: rule.requiresAuth };
       }
     }
   }

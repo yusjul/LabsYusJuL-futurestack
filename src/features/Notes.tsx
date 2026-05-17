@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Pin, Search, Trash2, Tag, Clock, FileText } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { getAllNotes, saveNote, deleteNote } from '../database/db';
@@ -55,18 +55,18 @@ function NoteCard({ note, active, onClick, onDelete, onPin }: {
         </div>
       </div>
 
-      <p className="font-body text-xs text-on-surface-variant dark:text-[#777584] line-clamp-3 mb-3">{preview}</p>
+      <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] line-clamp-3 mb-3">{preview}</p>
 
       <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-1">
           {note.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="flex items-center gap-0.5 font-mono text-[10px] px-1.5 py-0.5 border border-on-surface-variant/40 dark:border-[#464552] text-on-surface-variant dark:text-[#777584]">
+            <span key={tag} className="flex items-center gap-0.5 font-mono text-[10px] px-1.5 py-0.5 border border-on-surface-variant/40 dark:border-[#464552] text-on-surface-variant dark:text-[#c8c4d4]">
               <Tag size={8} />
               {tag}
             </span>
           ))}
         </div>
-        <span className="flex items-center gap-1 font-mono text-[10px] text-on-surface-variant dark:text-[#464552]">
+        <span className="flex items-center gap-1 font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">
           <Clock size={8} />
           {new Date(note.updatedAt).toLocaleDateString()}
         </span>
@@ -96,8 +96,8 @@ function MarkdownView({ content }: { content: string }) {
       const code = match.replace(/```[\w]*\n?/, '').replace(/```$/, '');
       return `<pre class="font-mono text-xs bg-surface-container dark:bg-[#252533] p-4 border-2 border-on-surface dark:border-[#464552] shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#464552] overflow-x-auto my-3">${code}</pre>`;
     })
-    .replace(/^- \[x\] (.+)$/gm, '<li class="flex items-start gap-2 mb-1"><span class="mt-0.5 text-[#84cc16]">✓</span><span class="line-through text-on-surface-variant dark:text-[#777584]">$1</span></li>')
-    .replace(/^- \[ \] (.+)$/gm, '<li class="flex items-start gap-2 mb-1"><span class="mt-0.5 text-on-surface-variant dark:text-[#464552]">○</span><span>$1</span></li>')
+    .replace(/^- \[x\] (.+)$/gm, '<li class="flex items-start gap-2 mb-1"><span class="mt-0.5 text-[#84cc16]">✓</span><span class="line-through text-on-surface-variant dark:text-[#c8c4d4]">$1</span></li>')
+    .replace(/^- \[ \] (.+)$/gm, '<li class="flex items-start gap-2 mb-1"><span class="mt-0.5 text-on-surface-variant dark:text-[#c8c4d4]">○</span><span>$1</span></li>')
     .replace(/^- (.+)$/gm, '<li class="mb-1 pl-4 relative before:absolute before:left-0 before:content-[\'·\']">$1</li>')
     .replace(/\n\n/g, '</p><p class="mb-3">')
     .replace(/^(?!<[h|l|p|c|u|o|p])/gm, '');
@@ -249,7 +249,7 @@ export function NotesPage() {
         {/* Search */}
         <div className="p-4 border-b-2 border-on-surface dark:border-[#464552] flex gap-2">
           <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#777584]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#c8c4d4]" />
             <input
               type="search"
               placeholder="Search notes..."
@@ -364,12 +364,12 @@ export function NotesPage() {
             <div className="flex items-center justify-between px-6 py-2 border-t border-on-surface/10 dark:border-[#464552]/50 flex-shrink-0">
               <div className="flex gap-1 flex-wrap">
                 {activeNote.tags.map(tag => (
-                  <span key={tag} className="font-mono text-[10px] px-1.5 py-0.5 border border-on-surface-variant/40 dark:border-[#464552] text-on-surface-variant dark:text-[#777584]">
+                  <span key={tag} className="font-mono text-[10px] px-1.5 py-0.5 border border-on-surface-variant/40 dark:border-[#464552] text-on-surface-variant dark:text-[#c8c4d4]">
                     {tag}
                   </span>
                 ))}
               </div>
-              <span className="font-mono text-xs text-on-surface-variant dark:text-[#464552]">
+              <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">
                 {new Date(activeNote.updatedAt).toLocaleString()}
               </span>
             </div>

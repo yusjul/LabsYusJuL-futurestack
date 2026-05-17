@@ -30,7 +30,7 @@ const rules: BotRule[] = [
   },
   // Apa ini / tentang app
   {
-    patterns: [/\b(apa\s*(ini|itu)|tentang|about|futurestack)\b/i],
+    patterns: [/\b(apa\s*(ini|itu)|tentang\s*(app|aplikasi|futurestack)|about\s*(app|futurestack)|futurestack)\b/i],
     responses: [
       'FutureStack adalah developer OS — platform untuk mengelola project, task, notes, dan workflow coding kamu dalam satu tempat! 🚀',
       'Ini FutureStack! Sebuah project management app dengan gaya neobrutalism yang keren. Kamu bisa kelola task, tulis notes, dan banyak lagi.',

@@ -40,7 +40,7 @@ const priorityBadge: Record<string, string> = {
   critical: 'bg-error text-on-error border-error',
   high: 'border-[#fa7a7a] text-[#fa7a7a]',
   medium: 'border-[#eab308] text-[#eab308]',
-  low: 'border-on-surface-variant text-on-surface-variant dark:border-[#777584] dark:text-[#777584]',
+  low: 'border-on-surface-variant text-on-surface-variant dark:border-[#777584] dark:text-[#c8c4d4]',
 };
 
 // ============================================
@@ -73,7 +73,7 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea] truncate">{project.name}</h3>
-          <p className="font-body text-body-sm text-on-surface-variant dark:text-[#777584] line-clamp-2 mt-0.5">{project.description}</p>
+          <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] line-clamp-2 mt-0.5">{project.description}</p>
         </div>
         <Dropdown
           trigger={
@@ -102,7 +102,7 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
       {/* Tags */}
       <div className="flex flex-wrap gap-1.5" aria-label="Tags">
         {project.tags.map(tag => (
-          <span key={tag} className="flex items-center gap-1 font-mono text-xs px-2 py-0.5 border border-on-surface-variant dark:border-[#464552] text-on-surface-variant dark:text-[#777584]">
+          <span key={tag} className="flex items-center gap-1 font-mono text-xs px-2 py-0.5 border border-on-surface-variant dark:border-[#464552] text-on-surface-variant dark:text-[#c8c4d4]">
             <Tag size={10} />
             {tag}
           </span>
@@ -112,7 +112,7 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
       {/* Progress */}
       <div>
         <div className="flex justify-between items-center mb-1">
-          <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Progress</span>
+          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Progress</span>
           <span className="font-mono text-xs font-bold text-on-surface dark:text-[#e5e1ea]">{progress}%</span>
         </div>
         <div className="w-full h-2 bg-surface-container dark:bg-[#252533] border border-on-surface/30 dark:border-[#464552]">
@@ -125,7 +125,7 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
             aria-valuemax={100}
           />
         </div>
-        <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mt-1">
+        <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-1">
           {done}/{total} tasks
         </p>
       </div>
@@ -358,7 +358,7 @@ export function ProjectsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 mb-3 md:mb-8">
         <div>
           <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Projects</h1>
-          <p className="font-body text-body-sm text-on-surface-variant dark:text-[#777584] mt-1">
+          <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">
             {projects.length} total · {projects.filter(p => p.status === 'active').length} active
           </p>
         </div>
@@ -374,7 +374,7 @@ export function ProjectsPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mb-4 md:mb-6">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#777584]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#c8c4d4]" />
           <input
             type="search"
             placeholder="Search projects..."
@@ -393,7 +393,7 @@ export function ProjectsPage() {
                 'px-3 py-2 font-mono text-xs border-2 min-h-[44px] whitespace-nowrap transition-all duration-150',
                 filterStatus === status
                   ? 'bg-primary text-on-primary border-on-surface dark:border-[#a8a6ff] shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#a8a6ff]'
-                  : 'bg-surface dark:bg-[#1e1e2a] text-on-surface-variant dark:text-[#777584] border-on-surface dark:border-[#464552] hover:bg-surface-container dark:hover:bg-[#252533]',
+                  : 'bg-surface dark:bg-[#1e1e2a] text-on-surface-variant dark:text-[#c8c4d4] border-on-surface dark:border-[#464552] hover:bg-surface-container dark:hover:bg-[#252533]',
               ].join(' ')}
             >
               {status.toUpperCase()}

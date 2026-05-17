@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Activity, Zap, ArrowUpRight } from 'lucide-react';
 import { getAllProjects, getAllTasks } from '../database/db';
 import type { Project, Task } from '../types';
@@ -38,8 +38,8 @@ function AnalyticsStat({ label, value, change, icon: Icon, color }: {
   return (
     <div className={`border-2 border-on-surface dark:border-[#a8a6ff] p-3 md:p-4 ${color} bg-surface dark:bg-[#1e1e2a]`}>
       <div className="flex items-center justify-between mb-1 md:mb-3">
-        <p className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#777584]">{label}</p>
-        <Icon size={12} className="md:inline text-on-surface-variant dark:text-[#777584]" />
+        <p className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#c8c4d4]">{label}</p>
+        <Icon size={12} className="md:inline text-on-surface-variant dark:text-[#c8c4d4]" />
       </div>
       <p className="font-headline font-bold text-lg md:text-2xl text-on-surface dark:text-[#e5e1ea] mb-1">{value}</p>
       <div className={`flex items-center gap-1 font-mono text-xs ${isPositive ? 'text-[#84cc16]' : 'text-[#fa7a7a]'}`}>
@@ -111,7 +111,7 @@ export function AnalyticsPage() {
       <div className="mb-3 md:mb-8">
         <div className="flex items-center gap-2 mb-1">
           <BarChart3 size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)]" />
-          <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-widest">Telemetry</span>
+          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">Telemetry</span>
         </div>
         <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Analytics</h1>
       </div>
@@ -147,7 +147,7 @@ export function AnalyticsPage() {
           >
             <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
               <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Weekly Velocity</h2>
-              <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Tasks/day</span>
+              <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Tasks/day</span>
             </div>
             <div className="p-3 md:p-5">
               {loading ? <Skeleton height="h-48" /> : (
@@ -201,7 +201,7 @@ export function AnalyticsPage() {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 border border-on-surface dark:border-[#464552]" style={{ background: item.color }} />
-                          <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">{item.name}</span>
+                          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{item.name}</span>
                         </div>
                         <span className="font-mono text-xs font-bold text-on-surface dark:text-[#e5e1ea]">{item.value}</span>
                       </div>
@@ -220,7 +220,7 @@ export function AnalyticsPage() {
         >
           <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
             <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Project Progress</h2>
-            <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Completion %</span>
+            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Completion %</span>
           </div>
           <div className="p-3 md:p-5">
             {loading ? <Skeleton height="h-48" /> : (

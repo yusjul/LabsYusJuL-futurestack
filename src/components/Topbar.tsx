@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, Sun, Moon, Bell, Search, Plus, Zap, Wifi, WifiOff, RefreshCw, Columns3, FolderKanban, FileText, CheckCircle, AlertCircle, Info, AlertTriangle, Trash2 } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { Modal } from './Overlays';
@@ -59,51 +59,51 @@ function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) 
         className="w-full border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] px-4 py-3 font-body text-body-md shadow-hard-sm focus:outline-none focus:border-[var(--color-primary-fixed-dim-light)] mb-4"
       />
       {query && !hasResults && (
-        <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] text-center py-8">No results found</p>
+        <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] text-center py-8">No results found</p>
       )}
       {query && hasResults && (
         <div className="space-y-4 max-h-80 overflow-y-auto">
           {matchedTasks.length > 0 && (
             <div>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-widest mb-2">Tasks</p>
+              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest mb-2">Tasks</p>
               {matchedTasks.slice(0, 5).map(t => (
                 <button key={t.id} onClick={() => select('kanban')} className="w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] hover:bg-surface-container dark:hover:bg-[#252533] border border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-all text-left">
                   <Columns3 size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)] flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea] truncate">{t.title}</p>
-                    {t.description && <p className="font-body text-xs text-on-surface-variant dark:text-[#777584] truncate">{t.description}</p>}
+                    {t.description && <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] truncate">{t.description}</p>}
                   </div>
-                  <span className="font-mono text-[10px] text-on-surface-variant dark:text-[#464552] flex-shrink-0">{t.status}</span>
+                  <span className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] flex-shrink-0">{t.status}</span>
                 </button>
               ))}
             </div>
           )}
           {matchedProjects.length > 0 && (
             <div>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-widest mb-2">Projects</p>
+              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest mb-2">Projects</p>
               {matchedProjects.slice(0, 5).map(p => (
                 <button key={p.id} onClick={() => select('projects')} className="w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] hover:bg-surface-container dark:hover:bg-[#252533] border border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-all text-left">
                   <FolderKanban size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)] flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea] truncate">{p.name}</p>
-                    {p.description && <p className="font-body text-xs text-on-surface-variant dark:text-[#777584] truncate">{p.description}</p>}
+                    {p.description && <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] truncate">{p.description}</p>}
                   </div>
-                  <span className="font-mono text-[10px] text-on-surface-variant dark:text-[#464552] flex-shrink-0">{p.status}</span>
+                  <span className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] flex-shrink-0">{p.status}</span>
                 </button>
               ))}
             </div>
           )}
           {matchedNotes.length > 0 && (
             <div>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase tracking-widest mb-2">Notes</p>
+              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest mb-2">Notes</p>
               {matchedNotes.slice(0, 5).map(n => (
                 <button key={n.id} onClick={() => select('notes')} className="w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] hover:bg-surface-container dark:hover:bg-[#252533] border border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-all text-left">
                   <FileText size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)] flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea] truncate">{n.title}</p>
-                    <p className="font-body text-xs text-on-surface-variant dark:text-[#777584] truncate">{n.tags.join(', ')}</p>
+                    <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] truncate">{n.tags.join(', ')}</p>
                   </div>
-                  <span className="font-mono text-[10px] text-on-surface-variant dark:text-[#464552] flex-shrink-0">{n.pinned ? '📌' : ''}</span>
+                  <span className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] flex-shrink-0">{n.pinned ? '📌' : ''}</span>
                 </button>
               ))}
             </div>
@@ -142,7 +142,7 @@ function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => v
       <div className="flex items-center justify-between px-4 py-3 border-b-2 border-on-surface dark:border-[#464552]">
         <span className="font-mono text-xs font-bold uppercase tracking-wider text-on-surface dark:text-[#e5e1ea]">Notifications</span>
         {notificationLog.length > 0 && (
-          <button onClick={clearAll} className="font-mono text-xs text-on-surface-variant dark:text-[#777584] hover:text-on-surface dark:hover:text-[#e5e1ea] flex items-center gap-1 min-h-[32px] px-2">
+          <button onClick={clearAll} className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] hover:text-on-surface dark:hover:text-[#e5e1ea] flex items-center gap-1 min-h-[32px] px-2">
             <Trash2 size={12} />
             Clear
           </button>
@@ -150,7 +150,7 @@ function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => v
       </div>
       <div className="max-h-72 overflow-y-auto">
         {notificationLog.length === 0 ? (
-          <p className="font-mono text-xs text-on-surface-variant dark:text-[#464552] text-center py-8">No notifications yet</p>
+          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] text-center py-8">No notifications yet</p>
         ) : (
           notificationLog.slice(0, 15).map(n => {
             const Icon = notifyIcon[n.type];
@@ -159,7 +159,7 @@ function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => v
                 <Icon size={14} className={`mt-0.5 flex-shrink-0 ${notifyColor[n.type]}`} />
                 <div className="min-w-0 flex-1">
                   <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea]">{n.message}</p>
-                  <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#777584] mt-0.5">
+                  <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] mt-0.5">
                     {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -225,14 +225,14 @@ export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
         </div>
         <div>
           <p className="font-headline font-bold text-sm text-on-surface dark:text-[#e5e1ea] leading-tight">LabsYusJuL</p>
-          <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] leading-tight">
+          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] leading-tight">
             {pageLabels[activePage] ?? activePage}
           </p>
         </div>
       </button>
 
       {/* Breadcrumb / Page label (desktop) */}
-      <div className="hidden md:flex items-center gap-2 font-mono text-xs text-on-surface-variant dark:text-[#777584] ml-2">
+      <div className="hidden md:flex items-center gap-2 font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] ml-2">
         <span>/</span>
         <span className="text-on-surface dark:text-[#e5e1ea] font-medium">{pageLabels[activePage]}</span>
       </div>
@@ -245,8 +245,8 @@ export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
         aria-label="Search (Ctrl+K)"
         className="hidden md:flex items-center gap-2 px-3 py-2 border-2 border-on-surface dark:border-[#464552] bg-surface-container dark:bg-[#1e1e2a] hover:border-[var(--color-primary-fixed-dim-light)] transition-colors duration-150 min-h-[44px]"
       >
-        <Search size={14} className="text-on-surface-variant dark:text-[#777584]" />
-        <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Search...</span>
+        <Search size={14} className="text-on-surface-variant dark:text-[#c8c4d4]" />
+        <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Search...</span>
         <kbd className="ml-4 font-mono text-xs bg-surface-container-high dark:bg-[#252533] px-1.5 py-0.5 border border-outline dark:border-[#464552]">
           ⌘K
         </kbd>

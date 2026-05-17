@@ -100,7 +100,7 @@ export function AuthModal() {
         <h2 className="font-headline font-bold text-headline-md text-on-surface dark:text-[#e5e1ea]">
           {isLogin ? 'Sign In' : 'Create Account'}
         </h2>
-        <p className="font-body text-body-sm text-on-surface-variant dark:text-[#777584] mt-1">
+        <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">
           {isLogin
             ? 'Sign in to create and edit data'
             : 'Register to start collaborating'}
@@ -110,11 +110,11 @@ export function AuthModal() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Username */}
         <div>
-          <label className="font-mono text-xs text-on-surface-variant dark:text-[#777584] block mb-1" htmlFor="auth-username">
+          <label className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] block mb-1" htmlFor="auth-username">
             Username
           </label>
           <div className="relative">
-            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#777584]" />
+            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#c8c4d4]" />
             <input
               id="auth-username"
               type="text"
@@ -130,11 +130,11 @@ export function AuthModal() {
         {/* Email - only for register */}
         {!isLogin && (
           <div>
-            <label className="font-mono text-xs text-on-surface-variant dark:text-[#777584] block mb-1" htmlFor="auth-email">
+            <label className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] block mb-1" htmlFor="auth-email">
               Email
             </label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#777584]" />
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#c8c4d4]" />
               <input
                 id="auth-email"
                 type="email"

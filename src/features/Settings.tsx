@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { User, Palette, Bell, Database, Zap, Shield, Sun, Moon, RefreshCw, Cloud, CloudOff, LogOut, CheckCircle } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { Input } from '../components/FormControls';
@@ -16,7 +16,7 @@ function SettingsSection({ title, description, children }: {
     <section className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]">
       <div className="px-6 py-4 border-b-2 border-on-surface dark:border-[#464552]">
         <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{title}</h2>
-        {description && <p className="font-body text-body-sm text-on-surface-variant dark:text-[#777584] mt-1">{description}</p>}
+        {description && <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">{description}</p>}
       </div>
       <div className="px-6 py-5 space-y-5">{children}</div>
     </section>
@@ -111,7 +111,7 @@ export function SettingsPage() {
       {/* Header */}
       <div className="mb-3 md:mb-8">
         <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Settings</h1>
-        <p className="font-body text-body-sm text-on-surface-variant dark:text-[#777584] mt-1">Configure your FutureStack workspace</p>
+        <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">Configure your FutureStack workspace</p>
       </div>
 
       {/* Layout: Tabs on desktop, dropdown-like tabs on mobile */}
@@ -174,7 +174,7 @@ export function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-headline font-semibold text-on-surface dark:text-[#e5e1ea]">{displayName}</p>
-                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">{user?.email ?? settings.email}</p>
+                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{user?.email ?? settings.email}</p>
                   <span className="font-mono text-xs px-2 py-0.5 bg-primary text-on-primary mt-1 inline-block">PRO PLAN</span>
                 </div>
               </div>
@@ -211,7 +211,7 @@ export function SettingsPage() {
             <SettingsSection title="Appearance" description="Customize the look and feel">
               {/* Theme selection */}
               <div>
-                <p className="font-mono text-xs uppercase tracking-wide text-on-surface-variant dark:text-[#777584] mb-3">Theme</p>
+                <p className="font-mono text-xs uppercase tracking-wide text-on-surface-variant dark:text-[#c8c4d4] mb-3">Theme</p>
                 <div className="grid grid-cols-2 gap-3">
                   {([
                     { value: 'light', label: 'Light Mode', icon: Sun },
@@ -231,8 +231,8 @@ export function SettingsPage() {
                         ].join(' ')}
                         aria-pressed={isActive}
                       >
-                        <Icon size={20} className={isActive ? 'text-primary dark:text-[var(--color-primary-fixed-dim-dark)]' : 'text-on-surface-variant dark:text-[#777584]'} />
-                        <span className={`font-mono text-xs ${isActive ? 'text-primary dark:text-[var(--color-primary-fixed-dim-dark)] font-bold' : 'text-on-surface-variant dark:text-[#777584]'}`}>
+                        <Icon size={20} className={isActive ? 'text-primary dark:text-[var(--color-primary-fixed-dim-dark)]' : 'text-on-surface-variant dark:text-[#c8c4d4]'} />
+                        <span className={`font-mono text-xs ${isActive ? 'text-primary dark:text-[var(--color-primary-fixed-dim-dark)] font-bold' : 'text-on-surface-variant dark:text-[#c8c4d4]'}`}>
                           {opt.label}
                         </span>
                       </button>
@@ -250,7 +250,7 @@ export function SettingsPage() {
 
               {/* Accent color */}
               <div>
-                <p className="font-mono text-xs uppercase tracking-wide text-on-surface-variant dark:text-[#777584] mb-3">Accent Color</p>
+                <p className="font-mono text-xs uppercase tracking-wide text-on-surface-variant dark:text-[#c8c4d4] mb-3">Accent Color</p>
                 <div className="flex gap-3 flex-wrap">
                   {[
                     { value: 'violet', color: '#918efa' },
@@ -314,7 +314,7 @@ export function SettingsPage() {
                       <CheckCircle size={16} className="text-[#84cc16]" />
                       <div>
                         <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea]">Connected as <strong>{user?.email}</strong></p>
-                        <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">
+                        <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">
                           {syncStatus === 'syncing' ? 'Syncing...' :
                            syncStatus === 'success' ? 'Last sync: all up to date' :
                            syncStatus === 'error' ? 'Sync failed. Check connection.' :
@@ -329,9 +329,9 @@ export function SettingsPage() {
                           const r = syncResult[table as keyof typeof syncResult] as { synced: number; errors: string[] };
                           return (
                             <div key={table} className="border border-on-surface/20 dark:border-[#464552]/50 p-2">
-                              <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] uppercase">{table}</p>
+                              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase">{table}</p>
                               <p className="font-headline font-bold text-lg text-on-surface dark:text-[#e5e1ea]">{r.synced}</p>
-                              <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#777584]">synced</p>
+                              <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">synced</p>
                             </div>
                           );
                         })}
@@ -351,7 +351,7 @@ export function SettingsPage() {
                       <CloudOff size={16} className="text-[#eab308]" />
                       <div>
                         <p className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea]">Not connected to cloud</p>
-                        <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Data is stored locally only. Sign in to sync across devices.</p>
+                        <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Data is stored locally only. Sign in to sync across devices.</p>
                       </div>
                     </div>
 
@@ -378,7 +378,7 @@ export function SettingsPage() {
                         {item.icon}
                         <span className="font-body text-body-sm text-on-surface dark:text-[#e5e1ea]">{item.label}</span>
                       </div>
-                      <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">{item.value}</span>
+                      <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -408,7 +408,7 @@ export function SettingsPage() {
                   </div>
                   <div>
                     <h3 className="font-headline font-bold text-on-surface dark:text-[#e5e1ea]">FutureStack v1.0.0</h3>
-                    <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">Build: {new Date().toISOString().split('T')[0]}</p>
+                    <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Build: {new Date().toISOString().split('T')[0]}</p>
                   </div>
                 </div>
                 {[
@@ -422,12 +422,12 @@ export function SettingsPage() {
                   ['Design', 'Neo-Brutalism System'],
                 ].map(([key, val]) => (
                   <div key={key} className="flex justify-between py-1.5 border-b border-on-surface/10 dark:border-[#464552]/30 last:border-0">
-                    <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">{key}</span>
+                    <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{key}</span>
                     <span className="font-mono text-xs text-on-surface dark:text-[#e5e1ea] font-medium">{val}</span>
                   </div>
                 ))}
                 <div className="pt-2">
-                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">
+                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">
                     Built by LabsYusJuL · Offline-first PWA
                   </p>
                 </div>

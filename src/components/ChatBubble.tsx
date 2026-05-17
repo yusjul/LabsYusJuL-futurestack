@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { Send, History, Trash2, PlusCircle, MessageSquare } from 'lucide-react';
 import { animate } from 'animejs';
 import { AssistantFace } from './AssistantFace';
 import { sendMessage } from '../utils/gemini';
@@ -25,6 +25,13 @@ interface PendingAction {
   params: Record<string, string>;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  timestamp: number;
+  messages: ChatMessage[];
+}
+
 export function ChatBubble() {
   const [open, setOpen] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
@@ -32,6 +39,9 @@ export function ChatBubble() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [pending, setPending] = useState<PendingAction | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -39,6 +49,8 @@ export function ChatBubble() {
 
   const { user, requireAuth, setActivePage, addToast, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask } = useApp();
   const hasUnread = !open && messages.length > 0 && messages[messages.length - 1].role === 'assistant';
+  
+  const shortName = user ? (user.user_metadata?.full_name || user.user_metadata?.username || user.email || '').substring(0, 3).toUpperCase() : '';
 
   useEffect(() => { if (user) resetGuestMsgCount(); }, [user]);
 
@@ -47,16 +59,101 @@ export function ChatBubble() {
     if (open) {
       setPanelVisible(true);
       setTimeout(() => {
-        if (panelRef.current) animRef.current = animate(panelRef.current, { translateY: { from: 20, to: 0 }, opacity: { from: 0, to: 1 }, scale: { from: 0.85, to: 1 }, duration: 350, easing: 'easeOutBack(1.2)' });
+        if (panelRef.current) {
+          panelRef.current.style.transformOrigin = 'bottom right';
+          animRef.current = animate(panelRef.current, { 
+            translateY: [60, 0], 
+            rotateX: [70, 0],
+            rotateZ: [-10, 0],
+            opacity: [0, 1], 
+            scale: [0.3, 1], 
+            duration: 600, 
+            easing: 'easeOutElastic(1, .6)' 
+          });
+        }
         if (inputRef.current) inputRef.current.focus();
       }, 10);
     } else {
-      if (panelRef.current) animRef.current = animate(panelRef.current, { translateY: { from: 0, to: 20 }, opacity: { from: 1, to: 0 }, scale: { from: 1, to: 0.85 }, duration: 200, easing: 'easeInQuad', onComplete: () => { if (!open) setPanelVisible(false); } });
+      if (panelRef.current) {
+        animRef.current = animate(panelRef.current, { 
+          translateY: [0, 60], 
+          rotateX: [0, 70],
+          rotateZ: [0, -10],
+          opacity: [1, 0], 
+          scale: [1, 0.3], 
+          duration: 300, 
+          easing: 'easeInBack', 
+          onComplete: () => { if (!open) setPanelVisible(false); } 
+        });
+      }
       else setPanelVisible(false);
     }
   }, [open]);
 
-  useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages]);
+  useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages, showHistory]);
+
+  // Muat riwayat awal
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('fs_chat_sessions');
+      if (stored) {
+        const parsed = JSON.parse(stored) as ChatSession[];
+        setSessions(parsed);
+      }
+    } catch {}
+  }, []);
+
+  // Simpan riwayat tiap ada pesan baru (kecuali kosong)
+  useEffect(() => {
+    if (messages.length === 0) return;
+    setSessions(prev => {
+      const existingIdx = prev.findIndex(s => s.id === currentSessionId);
+      const newSessions = [...prev];
+      if (existingIdx >= 0) {
+        newSessions[existingIdx].messages = messages;
+        newSessions[existingIdx].timestamp = Date.now();
+      } else {
+        const newId = `sess-${Date.now()}`;
+        setCurrentSessionId(newId);
+        newSessions.unshift({
+          id: newId,
+          title: messages[0].content.slice(0, 30) + '...',
+          timestamp: Date.now(),
+          messages
+        });
+      }
+      localStorage.setItem('fs_chat_sessions', JSON.stringify(newSessions));
+      return newSessions;
+    });
+  }, [messages, currentSessionId]);
+
+  function startNewChat() {
+    setMessages([]);
+    setCurrentSessionId(null);
+    setShowHistory(false);
+    if (sessions.length >= 10) {
+      addToast({ message: '⚠️ Batas riwayat maksimal (10). Hapus riwayat lama untuk menyimpan yang baru!', type: 'warning' });
+    }
+  }
+
+  function loadSession(sess: ChatSession) {
+    setCurrentSessionId(sess.id);
+    setMessages(sess.messages);
+    setShowHistory(false);
+  }
+
+  function deleteSession(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSessions(prev => {
+      const filtered = prev.filter(s => s.id !== id);
+      localStorage.setItem('fs_chat_sessions', JSON.stringify(filtered));
+      return filtered;
+    });
+    if (currentSessionId === id) {
+      setMessages([]);
+      setCurrentSessionId(null);
+    }
+  }
 
   // Helper: kirim pesan assistant
   function pushAssistant(content: string) {
@@ -330,8 +427,9 @@ export function ChatBubble() {
       if (pending.step === 'ask_project') {
         // Resolve project dari jawaban user (bisa nomor atau nama)
         let projectName = answer;
-        const numInput = parseInt(answer.trim(), 10);
-        if (!isNaN(numInput)) {
+        const numMatch = answer.match(/\d+/);
+        if (numMatch) {
+          const numInput = parseInt(numMatch[0], 10);
           // User ketik nomor → ambil dari list project
           const projects = await getAllProjects();
           const activeProjects = projects.filter(p => p.status !== 'archived');
@@ -574,9 +672,31 @@ export function ChatBubble() {
       return;
     }
 
+    // === PROJECT MENTION DETECTION ===
+    const [allProjects, allTasks] = await Promise.all([getAllProjects(), getAllTasks()]);
+    const activeProjects = allProjects.filter(p => p.status !== 'archived');
+    
+    // Normalize string: hapus double karakter (stress -> stres) agar lebih toleran
+    const normalize = (s: string) => s.toLowerCase().replace(/(.)\1+/g, '$1').replace(/\s+/g, '');
+    const normalizedText = normalize(text);
+    
+    // Cari apakah input mereferensikan nama project yang ada
+    const mentionedProject = activeProjects.find(p => 
+      normalizedText.includes(normalize(p.name)) || 
+      // Atau jika namanya sangat mirip (fallback kasar)
+      text.toLowerCase().includes(p.name.toLowerCase())
+    );
+
+    const isQuestion = text.trim().endsWith('?') || /^(apa|bagaimana|berapa|kenapa|mengapa|kapan|siapa|dimana|gimana|gmn|apakah|ada\s+ide)/i.test(text.trim());
+
+    if (mentionedProject && action.type === 'none' && !isQuestion) {
+      pushAssistant(`💡 Aku lihat kamu menyebut project **"${mentionedProject.name}"**.\n\nAda yang bisa kubantu untuk project ini?\n• Ketik _"tambah task [judul] ke ${mentionedProject.name}"_\n• Ketik _"status ${mentionedProject.name}"_\n• Ketik _"hapus project ${mentionedProject.name}"_`);
+      setLoading(false);
+      return;
+    }
+
     // Bukan aksi → AI (Groq → Gemini → Offline)
     // Inject data konteks real-time dari IndexedDB agar AI bisa jawab pertanyaan data
-    const [allProjects, allTasks] = await Promise.all([getAllProjects(), getAllTasks()]);
     const projectContext = allProjects.map(p => {
       const pTasks = allTasks.filter(t => t.projectId === p.id);
       const done = pTasks.filter(t => t.status === 'done').length;
@@ -623,30 +743,71 @@ export function ChatBubble() {
                 <span className="font-mono text-xs font-bold uppercase tracking-wider">Assistant</span>
               </div>
               {user ? (
-                <span className="font-mono text-[10px] text-green-200 px-1.5 py-0.5 bg-green-800/30 border border-green-200/30">LOGGED IN</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setShowHistory(h => !h)}
+                    title="Daftar Riwayat Chat"
+                    className="flex items-center justify-center w-7 h-7 bg-surface-container dark:bg-[#252533] border border-on-surface/30 dark:border-[#464552] rounded-md hover:bg-on-surface/5 transition-colors cursor-pointer group"
+                  >
+                    {showHistory ? <MessageSquare size={14} className="text-on-surface-variant group-hover:text-primary transition-colors" /> : <History size={14} className="text-on-surface-variant group-hover:text-primary transition-colors" />}
+                  </button>
+                  <button
+                    onClick={startNewChat}
+                    title="Chat Baru"
+                    className="flex items-center justify-center w-7 h-7 bg-surface-container dark:bg-[#252533] border border-on-surface/30 dark:border-[#464552] rounded-md hover:bg-on-surface/5 transition-colors cursor-pointer group"
+                  >
+                    <PlusCircle size={14} className="text-on-surface-variant group-hover:text-primary transition-colors" />
+                  </button>
+                </div>
               ) : (
                 <span className="font-mono text-[10px] text-yellow-200 px-1.5 py-0.5 bg-yellow-800/30 border border-yellow-200/30">GUEST ({guestLeft} left)</span>
               )}
             </div>
 
-            {/* Messages */}
-            <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px]">
-              {messages.length === 0 ? (
+            {/* Messages or History List */}
+            <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] dot-grid relative z-0">
+              {/* Background Ornaments */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15] dark:opacity-[0.1] -z-10 flex flex-col justify-between">
+                <svg className="absolute top-8 right-6 w-16 h-16 text-pink-500 dark:text-pink-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg className="absolute top-1/2 left-4 w-12 h-12 text-cyan-500 dark:text-cyan-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
+                <svg className="absolute bottom-8 right-12 w-20 h-20 text-yellow-500 dark:text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M4.9 19.1L19.1 4.9"/></svg>
+              </div>
+
+              {showHistory ? (
+                <div className="space-y-2">
+                  <h3 className="font-mono text-[11px] font-bold text-on-surface-variant uppercase mb-3">Riwayat Chat ({sessions.length}/10)</h3>
+                  {sessions.length === 0 ? (
+                    <p className="font-mono text-xs text-on-surface-variant text-center py-4">Belum ada riwayat</p>
+                  ) : (
+                    sessions.map(s => (
+                      <div key={s.id} onClick={() => loadSession(s)} className="relative z-10 group flex items-center justify-between p-2 border border-on-surface/20 dark:border-[#464552] bg-surface dark:bg-[#252533] hover:border-primary cursor-pointer transition-colors">
+                        <div className="flex flex-col overflow-hidden min-w-0 pr-2">
+                          <span className="font-body text-xs font-medium text-on-surface truncate">{s.title}</span>
+                          <span className="font-mono text-[9px] text-on-surface-variant">{new Date(s.timestamp).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                        </div>
+                        <button onClick={(e) => deleteSession(s.id, e)} className="p-1.5 flex-shrink-0 text-on-surface-variant hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#777584] mb-2">👋 Hai! Ada yang bisa dibantu?</p>
-                  <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#464552] mb-3">Tanya seputar project, task, atau coding</p>
+                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-2">👋 Hai{shortName ? ` ${shortName}` : ''}! Ada yang bisa dibantu?</p>
+                  <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] mb-3">Tanya seputar project, task, atau coding</p>
                   <div className="flex flex-wrap justify-center gap-1.5">
                     {['Buat project baru', 'Lihat semua task', 'Tips coding'].map(cmd => (
-                      <button key={cmd} onClick={() => setInput(cmd)} className="font-mono text-[10px] px-2 py-1 border border-on-surface/30 dark:border-[#464552] bg-surface-container dark:bg-[#252533] text-on-surface-variant dark:text-[#777584] hover:bg-primary/10 transition-colors cursor-pointer">{cmd}</button>
+                      <button key={cmd} onClick={() => setInput(cmd)} className="font-mono text-[10px] px-2 py-1 border border-on-surface/30 dark:border-[#464552] bg-surface-container dark:bg-[#252533] text-on-surface-variant dark:text-[#c8c4d4] hover:bg-primary/10 transition-colors cursor-pointer">{cmd}</button>
                     ))}
                   </div>
                 </div>
               ) : (
                 messages.map(msg => (
-                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div key={msg.id} className={`relative z-10 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={['max-w-[85%] px-3 py-2 border-2', msg.role === 'user' ? 'bg-primary text-on-primary border-on-surface dark:border-[#a8a6ff]' : 'bg-surface-container dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] border-on-surface/40 dark:border-[#464552]'].join(' ')}>
                       <p className="font-body text-body-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                      <p className="font-mono text-[10px] text-on-surface-variant/60 dark:text-[#777584]/60 text-right mt-1">
+                      <p className="font-mono text-[10px] text-on-surface-variant/60 dark:text-[#c8c4d4]/60 text-right mt-1">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -654,7 +815,7 @@ export function ChatBubble() {
                 ))
               )}
               {loading && (
-                <div className="flex justify-start">
+                <div className="relative z-10 flex justify-start">
                   <div className="bg-surface-container dark:bg-[#252533] border-2 border-on-surface/40 dark:border-[#464552] px-3 py-2">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />

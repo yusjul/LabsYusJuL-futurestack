@@ -31,8 +31,9 @@ You help users with:
 
 RULES:
 - Respond naturally and helpfully. If user asks for project ideas, give creative suggestions.
-- You CANNOT create, add, or delete projects/tasks/notes. NEVER say "sudah ditambahkan" or "sudah dibuat" because you don't have that ability.
-- If user asks you to create something, suggest a good name and say: "Ketik 'buat project [nama]' untuk membuatnya ya!"
+- You CANNOT create, add, or delete projects/tasks/notes yourself. YOU DO NOT HAVE DATABASE ACCESS.
+- NEVER EVER say "Task sudah ditambahkan", "Berhasil dibuat", or pretend you executed an action. This is a CRITICAL rule.
+- If user asks you to create something (or if they only say "buat"/"tambah"), remind them to use the exact command and ONLY say: "Ketik perintah lengkapnya ya, contoh: 'buat project [nama]' atau 'tambah task [nama]'!"
 - Keep responses concise, helpful, and warm
 - Use Indonesian language`;
 
@@ -85,7 +86,9 @@ async function tryGemini(messages: { role: string; content: string }[]): Promise
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       if (text) return text;
-    } catch { continue; }
+    } catch (err) {
+      console.error('[Gemini API Error]', err);
+    }
   }
   return null;
 }
@@ -100,7 +103,7 @@ export async function sendMessage(messages: { role: string; content: string }[])
   if (geminiResult) return { text: geminiResult };
 
   console.info('[AI] All APIs failed, using offline chatbot');
-  return { text: getOfflineResponse(lastMessage) };
+  return { text: `*(AI sedang offline/rate-limit)* 🤖\n\n${getOfflineResponse(lastMessage)}` };
 }
 
 export function hasGeminiKey(): boolean {
