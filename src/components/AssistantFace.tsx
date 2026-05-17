@@ -376,6 +376,14 @@ export function AssistantFace({ open, onToggle, unread }: AssistantFaceProps) {
     timerRef.current = window.setTimeout(() => setStrokeCount(0), 1200); // 1.2s window allows natural pauses between strokes
   }
 
+  function handleTouchMove(e: React.TouchEvent) {
+    // Prevent default scroll behavior so the user can smoothly pet the AI without the screen wiggling/scrolling!
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+    handleMouseMove();
+  }
+
   function handleMouseEnter() {
     if (!featuresRef.current || isShy) return;
 
@@ -489,9 +497,12 @@ export function AssistantFace({ open, onToggle, unread }: AssistantFaceProps) {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onMouseMove={handleMouseMove}
+          onTouchStart={handleMouseEnter} // Start playfulness/spin when touch starts!
+          onTouchEnd={handleMouseLeave} // Reset face when touch ends!
+          onTouchMove={handleTouchMove} // Trigger petting stroke logic & prevent screen scroll!
           aria-label={open ? 'Close chat' : 'Open chat'}
-          className="absolute inset-0 cursor-pointer bg-transparent border-none p-0 outline-none"
-          style={{ transformStyle: 'preserve-3d' }}
+          className="absolute inset-0 cursor-pointer bg-transparent border-none p-0 outline-none select-none" // Added select-none to prevent blue touch tap highlighting!
+          style={{ transformStyle: 'preserve-3d', touchAction: 'none' }} // touchAction none tells browser we handle touches, avoiding laggy gestures!
         >
           {/* Base Face (STATIC - never rotates, so it never flattens) */}
           <div className="absolute inset-0" style={{ transform: 'translateZ(0px)' }}>
