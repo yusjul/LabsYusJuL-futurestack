@@ -221,9 +221,6 @@ export function AssistantFace({ open, onToggle, unread }: AssistantFaceProps) {
     const winkId = window.setInterval(() => {
       if (!leftPupilRef.current || !rightPupilRef.current) return;
 
-      const origL = leftPupilRef.current.getAttribute('r');
-      const origR = rightPupilRef.current.getAttribute('r');
-
       animate(leftPupilRef.current, { r: 0.3, duration: 80, easing: 'easeOutQuad' });
       animate(rightPupilRef.current, { r: 0.3, duration: 80, easing: 'easeOutQuad' });
 
