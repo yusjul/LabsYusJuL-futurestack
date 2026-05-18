@@ -48,7 +48,7 @@ export function ChatBubble() {
   const savedMsgIds = useRef(new Set<string>());
 
   const { user, requireAuth, setActivePage, addToast, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask,
-    pushChatSessionAfterSave, deleteRemoteChatSession, pushChatMessageAfterSave, deleteRemoteChatMessage } = useApp();
+    pushChatSessionAfterSave, deleteRemoteChatSession, pushChatMessageAfterSave } = useApp();
   const { t } = useTranslation();
   const hasUnread = !open && messages.length > 0 && messages[messages.length - 1].role === 'assistant';
 

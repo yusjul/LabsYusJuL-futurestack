@@ -270,14 +270,14 @@ function SearchPanel() {
       </div>
   );
 }
-function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+function NotificationsPanel({ open, onClose, btnRef }: { open: boolean; onClose: () => void; btnRef: React.RefObject<HTMLButtonElement | null> }) {
   const { notificationLog, clearNotifications, addToast } = useApp();
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node) && notifBtnRef.current && !notifBtnRef.current.contains(e.target as Node)) {
+      if (ref.current && !ref.current.contains(e.target as Node) && btnRef.current && !btnRef.current.contains(e.target as Node)) {
         onClose();
       }
     }
@@ -331,7 +331,7 @@ function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => v
 }
 
 export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
-  const { theme, toggleTheme, connectionStatus, activePage, autoSaveLabel, addToast, setActivePage, notificationLog, user, requireAuth, highlightQuery, setHighlightQuery } = useApp();
+  const { theme, toggleTheme, connectionStatus, activePage, autoSaveLabel, setActivePage, notificationLog, user, highlightQuery, setHighlightQuery } = useApp();
   const { t } = useTranslation();
   const connectionConfig = {
     online: { icon: Wifi, label: t('topbar.online'), color: 'text-[#84cc16]', dotClass: 'bg-[#84cc16] animate-pulse-dot' },
@@ -435,7 +435,7 @@ export function Topbar({ onMenuClick, onGoToLanding }: TopbarProps) {
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-error animate-pulse" />
           )}
         </button>
-        <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+        <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} btnRef={notifBtnRef} />
       </div>
 
       {/* Theme toggle */}

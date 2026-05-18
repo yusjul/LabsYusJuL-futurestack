@@ -5,7 +5,6 @@ import { useApp } from '../store/AppContext';
 import { Input } from '../components/FormControls';
 import { Button } from '../components/Button';
 import { seedDatabase, getAllProjects, getAllTasks, getAllNotes } from '../database/db';
-import { saveNote } from '../database/db';
 import { exportToJSON } from '../utils/export';
 
 // ============================================
@@ -72,7 +71,7 @@ function Toggle({ checked, onChange, id, label }: {
 // ============================================
 export function SettingsPage() {
   const { t } = useTranslation();
-  const { settings, updateSettings, theme, addToast, user, isAuthenticated, syncStatus, syncNow, signOut, syncResult, setShowAuthModal, clearAllLocalData, setFreshStart, freshStart, setActivePage, requireAuth } = useApp();
+  const { settings, updateSettings, theme, addToast, user, isAuthenticated, syncStatus, syncNow, signOut, syncResult, setShowAuthModal, clearAllLocalData, setFreshStart, freshStart, requireAuth } = useApp();
   const settingsTabs = [
     { id: 'profile', label: t('settings.tab_profile'), icon: <User size={14} /> },
     { id: 'appearance', label: t('settings.tab_appearance'), icon: <Palette size={14} /> },
@@ -82,8 +81,6 @@ export function SettingsPage() {
     { id: 'about', label: t('settings.tab_about'), icon: <Zap size={14} /> },
   ];
   const [activeTab, setActiveTab] = useState('profile');
-  const [docInput, setDocInput] = useState('');
-  const [generatedDoc, setGeneratedDoc] = useState('');
   const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const displayName = user?.email
@@ -122,55 +119,6 @@ export function SettingsPage() {
   async function handleSignOut() {
     await signOut();
     addToast({ message: t('settings.data_toast_signed_out'), type: 'info' });
-  }
-
-  function handleGenerateDoc() {
-    const topic = docInput.trim();
-    if (!topic) return;
-
-    const responses: Record<string, string> = {
-      project: `# 📁 Tutorial: Cara Membuat Project\n\n## Langkah 1: Buka Halaman Projects\nKlik "Projects" di sidebar atau tekan tombol 2 di keyboard.\n\n## Langkah 2: Klik "+ New Project"\nTombol ini ada di pojok kanan atas halaman Projects.\n\n## Langkah 3: Isi Detail Project\n- **Nama**: Beri judul yang deskriptif\n- **Deskripsi**: Jelaskan tujuan project\n- **Status**: Pilih active/draft/archived\n- **Prioritas**: critical/high/medium/low\n- **Warna**: Pilih aksen warna khas\n\n## Langkah 4: Save\nKlik tombol Save. Project siap digunakan!\n\n💡 **Tips**: Gunakan warna berbeda untuk membedakan jenis project.`,
-      task: `# ✅ Tutorial: Mengelola Task\n\n## Membuat Task Baru\n1. Buka halaman Kanban\n2. Klik "+ Add Task" di kolom mana pun\n3. Isi judul, deskripsi, dan prioritas\n4. Klik Save\n\n## Drag & Drop\nTask bisa dipindahkan antar kolom dengan drag-and-drop.\n\n## Status Task\n- Backlog → ide yang belum dikerjakan\n- To Do → yang akan dikerjakan\n- In Progress → sedang dikerjakan\n- Review → butuh pengecekan\n- Done → selesai ✅`,
-      note: `# 📝 Tutorial: Menulis Notes\n\n## Membuat Note Baru\n1. Buka halaman Notes (sidebar atau tekan 4)\n2. Klik tombol "+" di pojok kanan\n3. Tulis judul dan konten dalam format Markdown\n4. Auto-save akan menyimpan otomatis\n\n## Format Markdown\n- **Bold**: \\*\\*teks\\*\\*\n- *Italic*: \\*teks\\*\n- \\\`\\\`\\\`code block\\\`\\\`\\\`\n- [ ] Checklist\n\n## Fitur Lain\n- Pin note untuk akses cepat\n- Tag untuk organisasi\n- Search untuk mencari konten`,
-      kanban: `# 📋 Tutorial: Kanban Board\n\n## Apa itu Kanban?\nKanban adalah metode visual untuk mengelola workflow.\n\n## Kolom yang Tersedia\n1. **Backlog** — ide dan task yang tertunda\n2. **To Do** — task yang akan dikerjakan\n3. **In Progress** — sedang dikerjakan\n4. **Review** — menunggu review\n5. **Done** — selesai\n\n## Cara Pakai\n- Drag task antar kolom untuk update status\n- Klik task untuk edit detail\n- Gunakan filter prioritas untuk fokus\n\n## Tips\nBatasi work-in-progress (WIP) agar tidak overload!`,
-      analytics: `# 📊 Tutorial: Analytics\n\n## Halaman Analytics\nMenampilkan visualisasi data project dan task kamu.\n\n## Grafik yang Tersedia\n1. **Tasks Completed** — grafik task selesai per minggu\n2. **Project Progress** — progress setiap project\n3. **Activity by Day** — aktivitas harian\n4. **Velocity Trend** — tren kecepatan kerja\n\n## Tips\nGunakan data analytics untuk evaluasi sprint dan improve workflow!`,
-      sync: `# ☁️ Tutorial: Cloud Sync\n\n## Setup Cloud Sync\n1. Buka Settings → Data & Storage\n2. Klik "Sign In with Email"\n3. Masukkan email dan password\n4. Data akan otomatis tersinkronisasi\n\n## Fitur Sync\n- Offline-first: data tetap aman di lokal\n- Sinkronisasi otomatis tiap 30 detik\n- Tombstone system untuk hapus data\n\n## Tips\nPastikan koneksi stabil saat sync pertama!`,
-    };
-
-    const lower = topic.toLowerCase();
-    let result = '';
-
-    if (lower.includes('project')) result = responses.project;
-    else if (lower.includes('task') || lower.includes('tugas')) result = responses.task;
-    else if (lower.includes('note') || lower.includes('catatan')) result = responses.note;
-    else if (lower.includes('kanban')) result = responses.kanban;
-    else if (lower.includes('analytic') || lower.includes('grafik') || lower.includes('chart')) result = responses.analytics;
-    else if (lower.includes('sync') || lower.includes('cloud') || lower.includes('sinkron')) result = responses.sync;
-    else {
-      result = `# 📚 Dokumentasi: ${topic}\n\n## Deskripsi\n${topic} adalah fitur dalam FutureStack yang membantu kamu dalam workflow development.\n\n## Cara Menggunakan\n1. Buka halaman terkait dari sidebar\n2. Ikuti panduan di halaman tersebut\n3. Gunakan tombol bantuan (?) jika diperlukan\n\n💡 **Tips**: Coba tanyakan lebih spesifik ke AI Chat Assistant untuk panduan detail!`;
-    }
-
-    setGeneratedDoc(result);
-    addToast({ message: t('settings.docs_ai_toast'), type: 'success' });
-  }
-
-  async function handleSaveDocAsNote() {
-    if (!generatedDoc) return;
-    const titleLine = generatedDoc.split('\n')[0].replace(/[#*]/g, '').trim();
-    const now = new Date().toISOString();
-    const note = {
-      id: `note-${Date.now()}`,
-      title: titleLine || 'Documentation',
-      content: generatedDoc,
-      tags: ['documentation'],
-      pinned: false,
-      createdAt: now,
-      updatedAt: now,
-    };
-    await saveNote(note);
-    addToast({ message: t('settings.docs_ai_saved_toast'), type: 'success' });
-    setGeneratedDoc('');
-    setDocInput('');
   }
 
   return (
@@ -627,7 +575,7 @@ export function SettingsPage() {
                 <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
                   <Button variant="danger" icon={<Trash2 size={14} />} onClick={handleClearData}>{t('settings.data_clear_all')}</Button>
                   <Button variant="outline" icon={<Sprout size={14} />} onClick={handleLoadDemoData}>{t('settings.data_load_demo')}</Button>
-                  <Button variant="outline" icon={<Download size={14} />} onClick={() => requireAuth(async () => { const [p, t, n] = await Promise.all([getAllProjects(), getAllTasks(), getAllNotes()]); exportToJSON(p, t, n); addToast({ message: t('settings.data_toast_export'), type: 'success' }); })}>{t('settings.data_export')}</Button>
+                  <Button variant="outline" icon={<Download size={14} />} onClick={() => requireAuth(async () => { const [projs, tasks, notes] = await Promise.all([getAllProjects(), getAllTasks(), getAllNotes()]); exportToJSON(projs, tasks, notes); addToast({ message: t('settings.data_toast_export'), type: 'success' }); })}>{t('settings.data_export')}</Button>
                 </div>
                 {freshStart && (
                   <div className="flex items-center gap-2 p-3 bg-[#eab308]/10 border border-[#eab308]/30 mt-3">
