@@ -14,6 +14,8 @@ export type ActionType =
   | 'delete_project'
   | 'delete_task'
   | 'navigate'
+  | 'generate_documentation'
+  | 'save_doc_as_note'
   | 'none';
 
 export interface ParsedAction {
@@ -159,6 +161,29 @@ const actionRules: ActionRule[] = [
     type: 'delete_task',
     patterns: [/(?:hapus|delete|remove)\s+(?:task|taks|tugas|todo)(?:nya)?\s+(.+)/i],
     extract: (m) => ({ title: m[1]?.trim().replace(/["""]/g, '') || '' }),
+    requiresAuth: true,
+  },
+  // === GENERATE DOCUMENTATION ===
+  {
+    type: 'generate_documentation',
+    patterns: [
+      /(?:buat(?:kan|in)?|generate|tolong)\s*(?:tutorial|dokumentasi|panduan|guide)\s*(?:untuk|tentang|mengenai)?\s*(.+)/i,
+      /(?:tutorial|dokumentasi|panduan)\s*(?:cara)?\s*(?:menggunakan|memakai|buat|bikin|membuat)\s*(.+)/i,
+    ],
+    extract: (m) => {
+      const topic = m[1]?.trim() || '';
+      return { topic };
+    },
+    requiresAuth: false,
+  },
+  // === SAVE DOC AS NOTE ===
+  {
+    type: 'save_doc_as_note',
+    patterns: [
+      /(?:simpan|save)\s*(?:dokumentasi|tutorial|panduan|doc|note)?\s*(?:ini|tersebut)?\s*(?:sebagai|ke|as)?\s*(note|catatan)/i,
+      /save\s*(?:this\s*)?(?:as\s*)?(?:a\s*)?note/i,
+    ],
+    extract: () => ({}),
     requiresAuth: true,
   },
   // === NAVIGATE ===

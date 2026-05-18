@@ -111,6 +111,131 @@ const rules: BotRule[] = [
     ],
   },
 
+  // ─── DOKUMENTASI / TUTORIAL (NEW) ─────────────────────────────────────────
+  {
+    patterns: [
+      /\b(buat(?:kan|in)?|generate|tolong|minta|coba)\s*(?:tutorial|dokumentasi|panduan|guide|dokumen|doc)\b/i,
+      /\b(tutorial|dokumentasi|panduan|guide)\s*(?:untuk|tentang|mengenai|cara)?\s*(.+)?/i,
+      /\bbagaimana\s+cara\s+(?:menggunakan|memakai|buat|bikin|membuat)\s+(.+)/i,
+      /\b(cara\s+pakai|cara\s+make|cara\s+gimana)\s*(.+)?/i,
+      /\btolong\s*(?:saya|aku)?\s*(?:diajarin|dibuatkan|dibikinin)\s*(?:tutorial|panduan|dokumentasi)/i,
+    ],
+    responses: [
+      '📚 **Mau dokumentasi?** Ketik perintah spesifik:\n• `tutorial cara membuat project`\n• `dokumentasi fitur kanban`\n• `panduan cara pakai notes`\n• `tugas bagaimana cara sync data`\n\nAtau langsung saja buka Settings → Documentation untuk panduan lengkap! 🚀',
+      '📖 **Butuh panduan?** Coba tanyakan:\n`buatkan tutorial untuk [fitur]`\n`dokumentasi cara menggunakan [fitur]`\n`panduan lengkap [topik]`\n\nAtau cek tab Documentation di Settings! ⚡',
+      '📗 **Siap bantu dokumentasi!** Kamu bisa minta:\n• tutorial untuk fitur spesifik\n• panduan langkah demi langkah\n• dokumentasi project\n\nContoh: _"buatkan tutorial cara membuat task di kanban"_ 🎯',
+    ],
+  },
+  // ─── GENERATE PROJECT TUTORIAL ─────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(tutorial|panduan|dokumentasi|cara)\s*(?:membuat|buat|bikin|mengelola|menggunakan|pakai|membuat)\s*(project|proyek|projek)/i,
+      /\b(gimana|bagaimana)\s+cara\s+(?:buat|membuat|bikin)\s+(?:project|proyek|projek)/i,
+    ],
+    responses: [
+      `📁 **Tutorial: Cara Membuat Project di FutureStack**
+
+**Langkah 1:** Buka halaman Projects dari sidebar (atau tekan angka 2)
+**Langkah 2:** Klik tombol "+ New Project" di pojok kanan atas
+**Langkah 3:** Isi detail project:
+• Nama project (wajib)
+• Deskripsi (opsional)
+• Status: Active / Draft / Archived
+• Prioritas: Critical / High / Medium / Low
+• Warna aksen
+**Langkah 4:** Klik "Save" — project siap!
+
+💡 **Tips:** Gunakan warna berbeda untuk membedakan jenis project. Active = sedang jalan, Draft = masih rencana, Archived = sudah selesai.
+
+Mau simpan tutorial ini sebagai Note? Buka Settings → Documentation → Generate Documentation with AI!`,
+    ],
+  },
+  // ─── GENERATE KANBAN TUTORIAL ──────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(tutorial|panduan|dokumentasi|cara)\s*(?:menggunakan|pakai|make|memakai)\s*(kanban|board|task)/i,
+      /\b(gimana|bagaimana)\s+cara\s+(?:pakai|menggunakan|make)\s+(kanban)/i,
+    ],
+    responses: [
+      `📋 **Tutorial: Menggunakan Kanban Board**
+
+**Apa itu Kanban?**
+Kanban adalah metode visual untuk mengelola workflow task.
+
+**5 Kolom Kanban:**
+1. 📦 **Backlog** — Ide & task yang tertunda
+2. 📋 **To Do** — Task yang akan dikerjakan
+3. 🔄 **In Progress** — Sedang dikerjakan
+4. 👁️ **Review** — Butuh pengecekan
+5. ✅ **Done** — Selesai!
+
+**Cara Pakai:**
+1. Buka halaman Kanban dari sidebar (tekan 3)
+2. Drag & drop task antar kolom untuk update status
+3. Klik "+ Add Task" di kolom mana pun untuk task baru
+4. Klik task untuk edit detail
+
+💡 **Tips:** Batasi work-in-progress (WIP) agar tidak overload! Fokus selesaikan 2-3 task sekaligus.`,
+    ],
+  },
+  // ─── GENERATE NOTES TUTORIAL ───────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(tutorial|panduan|dokumentasi|cara)\s*(?:menggunakan|pakai|make|menulis)\s*(notes|note|catatan)/i,
+      /\b(gimana|bagaimana)\s+cara\s+(?:membuat|buat|bikin|nulis)\s+(?:notes|note|catatan)/i,
+    ],
+    responses: [
+      `📝 **Tutorial: Menulis Notes di FutureStack**
+
+**Langkah 1:** Buka Notes dari sidebar (tekan 4)
+**Langkah 2:** Klik tombol "+" di pojok kanan atas
+**Langkah 3:** Tulis judul dan konten dalam format **Markdown**
+
+**Format Markdown:**
+• **Bold:** \\*\\*teks\\*\\*
+• *Italic:* \\*teks\\*
+• \\\`kode inline\\\`
+• \\\`\\\`\\\`code block\\\`\\\`\\\`
+• [ ] Checklist
+• - Bullet list
+
+**Fitur Lain:**
+📍 Pin note untuk akses cepat
+🏷️ Tag untuk organisasi
+🔍 Search untuk mencari konten
+💾 Auto-save otomatis
+
+💡 **Tips:** Gunakan notes untuk dokumentasi API, snippet kode, daily standup, atau ide project!`,
+    ],
+  },
+  // ─── GENERATE SYNC TUTORIAL ────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(tutorial|panduan|dokumentasi|cara)\s*(?:sync|sinkron|cloud|backup|sinkronisasi)/i,
+      /\b(gimana|bagaimana)\s+cara\s+(?:sync|sinkron|backup)\s+(?:data)/i,
+    ],
+    responses: [
+      `☁️ **Tutorial: Cloud Sync FutureStack**
+
+**Apa itu Cloud Sync?**
+Menyinkronkan data FutureStack antara browser kamu dan server Supabase.
+
+**Cara Setup:**
+1. Buka **Settings → Data & Storage**
+2. Klik "Sign In with Email"
+3. Masukkan email & password (daftar dulu jika belum)
+4. Data otomatis tersinkronisasi!
+
+**Fitur Sync:**
+• 🔄 Auto-sync setiap 30 detik
+• 📱 Offline-first — data tetap aman di lokal
+• 🗑️ Tombstone system — hapus data tetap sinkron
+• 🔔 Real-time update dari perangkat lain
+
+💡 **Tips:** Pastikan koneksi stabil saat sync pertama. Data tidak akan hilang meskipun offline!`,
+    ],
+  },
+
   // ─── CODING / PROGRAMMING ────────────────────────────────────────────────
   {
     patterns: [/\b(coding|code|kode|program|ngoding|develop|pemrograman)\b/i],
