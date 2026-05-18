@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import type { Theme, ConnectionStatus, Toast, ActivePage, UserSettings, NotificationEntry, Project, Task, Note } from '../types';
-import { getSettings, saveSettings } from '../database/db';
+import type { Theme, ConnectionStatus, Toast, ActivePage, UserSettings, NotificationEntry, Project, Task, Note, ChatSession, ChatMessageDB } from '../types';
+import { getSettings, saveSettings, clearAllData } from '../database/db';
 import * as syncEngine from '../database/sync';
-import { supabase, signInWithUsername as supabaseSignInWithUsername, signUpWithProfile as supabaseSignUpWithProfile, resetPasswordForEmail as supabaseResetPasswordForEmail, signOut as supabaseSignOut } from '../database/supabase';
+import { supabase, signInWithUsername as supabaseSignInWithUsername, signUpWithProfile as supabaseSignUpWithProfile, resetPasswordForEmail as supabaseResetPasswordForEmail, signOut as supabaseSignOut, sendOtp as supabaseSendOtp, verifyOtpCode as supabaseVerifyOtpCode, updateUserPassword as supabaseUpdateUserPassword } from '../database/supabase';
 import type { User } from '@supabase/supabase-js';
 
 type SyncStatusValue = 'idle' | 'syncing' | 'success' | 'error';
@@ -26,6 +26,8 @@ interface AppState {
   dataVersion: number;
   authReady: boolean;
   showAuthModal: boolean;
+  freshStart: boolean;
+  highlightQuery: string;
 }
 
 interface AppActions {
@@ -43,6 +45,9 @@ interface AppActions {
   signInWithUsername: (username: string, password: string) => Promise<void>;
   signUpWithProfile: (username: string, email: string, gender: string, password: string) => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<void>;
+  sendOtp: (email: string) => Promise<void>;
+  verifyOtpCode: (email: string, token: string) => Promise<void>;
+  updateUserPassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   requireAuth: (callback: () => void | Promise<void>) => void;
   setShowAuthModal: (open: boolean) => void;
@@ -53,7 +58,14 @@ interface AppActions {
   deleteRemoteTask: (id: string) => Promise<void>;
   pushNoteAfterSave: (note: Note) => Promise<void>;
   deleteRemoteNote: (id: string) => Promise<void>;
+  pushChatSessionAfterSave: (session: ChatSession) => Promise<void>;
+  deleteRemoteChatSession: (id: string) => Promise<void>;
+  pushChatMessageAfterSave: (msg: ChatMessageDB) => Promise<void>;
+  deleteRemoteChatMessage: (id: string) => Promise<void>;
   bumpDataVersion: () => void;
+  clearAllLocalData: () => Promise<void>;
+  setFreshStart: (v: boolean) => void;
+  setHighlightQuery: (q: string) => void;
 }
 
 type AppContextValue = AppState & AppActions;
@@ -70,6 +82,7 @@ const defaultSettings: UserSettings = {
   autoSave: true,
   name: 'LabsYusJuL',
   email: 'dev@futurestack.io',
+  language: 'en',
 };
 
 // ============================================
@@ -94,6 +107,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dataVersion, setDataVersion] = useState(0);
   const [authReady, setAuthReady] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [freshStart, setFreshStart_] = useState(false);
+  const [highlightQuery, setHighlightQuery] = useState('');
   const pendingActionRef = useRef<(() => void) | null>(null);
 
   // Load settings from DB on mount
@@ -152,12 +167,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     })().finally(() => setAuthReady(true));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
         setShowAuthModal(false);
+        if (event === 'SIGNED_IN') {
+          await clearAllData();
+          setFreshStart_(true);
+        }
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          syncNow();
+          await syncNow();
           const action = pendingActionRef.current;
           pendingActionRef.current = null;
           if (action) {
@@ -172,10 +191,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Auto-sync when coming back online
+  // Auto-sync when coming back online (hanya sekali, pakai ref anti loop)
+  const onlineSynced = useRef(false);
   useEffect(() => {
-    if (connectionStatus === 'online' && user) {
+    if (connectionStatus === 'online' && user && !onlineSynced.current) {
+      onlineSynced.current = true;
       syncNow();
+    }
+    if (connectionStatus !== 'online') {
+      onlineSynced.current = false;
     }
   }, [connectionStatus]);
 
@@ -187,7 +211,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const result = await syncEngine.fullSync();
     setSyncResult(result);
     setDataVersion(v => v + 1);
-    if (result.error || result.projects.errors.length > 0 || result.tasks.errors.length > 0 || result.notes.errors.length > 0) {
+    if (result.error || result.projects.errors.length > 0 || result.tasks.errors.length > 0 || result.notes.errors.length > 0 || result.chatSessions.errors.length > 0 || result.chatMessages.errors.length > 0) {
       setSyncStatus('error');
       setConnectionStatus('offline');
     } else {
@@ -301,7 +325,7 @@ function applyAccent(accent: string) {
     setConnectionStatus('sync-pending');
     const result = await syncEngine.fullSync();
     setSyncResult(result);
-    if (result.error || result.projects.errors.length > 0 || result.tasks.errors.length > 0 || result.notes.errors.length > 0) {
+    if (result.error || result.projects.errors.length > 0 || result.tasks.errors.length > 0 || result.notes.errors.length > 0 || result.chatSessions.errors.length > 0 || result.chatMessages.errors.length > 0) {
       setSyncStatus('error');
       setConnectionStatus('offline');
     } else {
@@ -323,6 +347,18 @@ function applyAccent(accent: string) {
 
   const resetPasswordForEmail = useCallback(async (email: string) => {
     await supabaseResetPasswordForEmail(email);
+  }, []);
+
+  const sendOtp = useCallback(async (email: string) => {
+    await supabaseSendOtp(email);
+  }, []);
+
+  const verifyOtpCode = useCallback(async (email: string, token: string) => {
+    await supabaseVerifyOtpCode(email, token);
+  }, []);
+
+  const updateUserPassword = useCallback(async (newPassword: string) => {
+    await supabaseUpdateUserPassword(newPassword);
   }, []);
 
   const signOutAction = useCallback(async () => {
@@ -402,17 +438,78 @@ function applyAccent(accent: string) {
     }
   }, [user]);
 
+  const pushChatSessionAfterSave = useCallback(async (session: ChatSession) => {
+    if (!hasSupabaseCreds || !user) return;
+    try {
+      await syncEngine.pushChatSession(session);
+    } catch {
+      // silent
+    }
+  }, [user]);
+
+  const deleteRemoteChatSession = useCallback(async (id: string) => {
+    if (!hasSupabaseCreds || !user) return;
+    try {
+      await syncEngine.deleteRemoteChatSession(id);
+    } catch {
+      // silent
+    }
+  }, [user]);
+
+  const pushChatMessageAfterSave = useCallback(async (msg: ChatMessageDB) => {
+    if (!hasSupabaseCreds || !user) return;
+    try {
+      await syncEngine.pushChatMessage(msg);
+    } catch {
+      // silent
+    }
+  }, [user]);
+
+  const deleteRemoteChatMessage = useCallback(async (id: string) => {
+    if (!hasSupabaseCreds || !user) return;
+    try {
+      await syncEngine.deleteRemoteChatMessage(id);
+    } catch {
+      // silent
+    }
+  }, [user]);
+
+  const bumpDataVersion = useCallback(() => setDataVersion(v => v + 1), []);
+
+  const clearAllLocalData = useCallback(async () => {
+    await clearAllData();
+    bumpDataVersion();
+    setFreshStart_(true);
+  }, [bumpDataVersion]);
+
+  const setFreshStart = useCallback((v: boolean) => setFreshStart_(v), []);
+
   const value: AppContextValue = {
     theme, connectionStatus, toasts, activePage, sidebarOpen, settings, autoSaveLabel, notificationLog,
-    user, syncStatus, syncResult, isAuthenticated: !!user, dataVersion, authReady, showAuthModal,
+    user, syncStatus, syncResult, isAuthenticated: !!user, dataVersion, authReady, showAuthModal, freshStart, highlightQuery,
     setTheme, toggleTheme, setConnectionStatus, addToast, removeToast,
     setActivePage, setSidebarOpen, toggleSidebar, updateSettings, showSaved, clearNotifications,
-    signInWithUsername, signUpWithProfile, resetPasswordForEmail, signOut: signOutAction, syncNow, requireAuth, setShowAuthModal: setShowAuthModalAction,
+    signInWithUsername, signUpWithProfile, resetPasswordForEmail, sendOtp, verifyOtpCode, updateUserPassword, signOut: signOutAction, syncNow, requireAuth, setShowAuthModal: setShowAuthModalAction,
     pushProjectAfterSave, deleteRemoteProject,
     pushTaskAfterSave, deleteRemoteTask,
     pushNoteAfterSave, deleteRemoteNote,
-    bumpDataVersion: () => setDataVersion(v => v + 1),
+    pushChatSessionAfterSave, deleteRemoteChatSession,
+    pushChatMessageAfterSave, deleteRemoteChatMessage,
+    bumpDataVersion,
+    clearAllLocalData, setFreshStart, setHighlightQuery,
   };
+
+  useEffect(() => {
+    const keyMap: Record<string, ActivePage> = { '1': 'dashboard', '2': 'projects', '3': 'kanban', '4': 'notes', '5': 'analytics', '6': 'settings',
+      'Digit1': 'dashboard', 'Digit2': 'projects', 'Digit3': 'kanban', 'Digit4': 'notes', 'Digit5': 'analytics', 'Digit6': 'settings' };
+    function handleKey(e: KeyboardEvent) {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+      const page = keyMap[e.key] ?? keyMap[e.code];
+      if (page) { e.preventDefault(); setActivePage(page); }
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [setActivePage]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
