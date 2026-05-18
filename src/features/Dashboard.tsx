@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import { TrendingUp, TrendingDown, ArrowRight, Zap, Activity, FolderKanban, FileText, CheckSquare, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { TrendingUp, TrendingDown, ArrowRight, Zap, Activity, FolderKanban, FileText, CheckSquare } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { getAllProjects, getAllTasks, getAllNotes } from '../database/db';
 import type { Project, Task, Note } from '../types';
-import { SkeletonStatCard } from '../components/Feedback';
+import { SkeletonStatCard, EmptyState } from '../components/Feedback';
 import { Button } from '../components/Button';
-import { exportToJSON, exportToCSV } from '../utils/export';
+import { useTranslation } from '../translations';
 
 // ============================================
 // STAT CARD
@@ -130,14 +130,12 @@ function ProjectMini({ project }: { project: Project }) {
 // DASHBOARD PAGE
 // ============================================
 export function DashboardPage() {
-  const { setActivePage, addToast, requireAuth } = useApp();
+  const { t } = useTranslation();
+  const { setActivePage, requireAuth } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-  const [exportOpen, setExportOpen] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
-  const [exportPos, setExportPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     async function load() {
@@ -150,25 +148,6 @@ export function DashboardPage() {
     load();
   }, []);
 
-  useEffect(() => {
-    if (!exportOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
-        setExportOpen(false);
-      }
-    }
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, [exportOpen]);
-
-  function toggleExport() {
-    if (!exportOpen && exportRef.current) {
-      const rect = exportRef.current.getBoundingClientRect();
-      setExportPos({ top: rect.bottom + 4, left: Math.max(8, rect.right - 176) });
-    }
-    setExportOpen(o => !o);
-  }
-
   const completedTasks = tasks.filter(t => t.status === 'done').length;
   const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
   const activeProjects = projects.filter(p => p.status === 'active').length;
@@ -176,40 +155,40 @@ export function DashboardPage() {
   const statCards: StatCardData[] = [
     {
       id: 'projects',
-      label: 'Active Projects',
+      label: t('dashboard.stat_active_projects'),
       value: activeProjects,
       change: 12,
-      changeLabel: 'this month',
+      changeLabel: t('dashboard.stat_this_month'),
       icon: FolderKanban,
       shadowColor: 'shadow-card-violet',
       bgIcon: 'bg-primary-container dark:bg-[var(--color-primary-container-dark)]',
     },
     {
       id: 'tasks',
-      label: 'Total Tasks',
+      label: t('dashboard.stat_total_tasks'),
       value: tasks.length,
       change: 8,
-      changeLabel: 'this week',
+      changeLabel: t('dashboard.stat_this_week'),
       icon: CheckSquare,
       shadowColor: 'shadow-card-cyan',
       bgIcon: 'bg-[#cffafe] dark:bg-[#083344]',
     },
     {
       id: 'completed',
-      label: 'Completed',
+      label: t('dashboard.stat_completed'),
       value: completedTasks,
       change: 24,
-      changeLabel: 'this week',
+      changeLabel: t('dashboard.stat_this_week'),
       icon: Activity,
       shadowColor: 'shadow-card-lime',
       bgIcon: 'bg-[#ecfccb] dark:bg-[#1a2e0d]',
     },
     {
       id: 'notes',
-      label: 'Notes',
+      label: t('dashboard.stat_notes'),
       value: notes.length,
       change: -3,
-      changeLabel: 'this week',
+      changeLabel: t('dashboard.stat_this_week'),
       icon: FileText,
       shadowColor: 'shadow-card-yellow',
       bgIcon: 'bg-tertiary-fixed dark:bg-[#574500]',
@@ -224,67 +203,20 @@ export function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Zap size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)]" />
-            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">System Overview</span>
+            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">{t('dashboard.badge')}</span>
           </div>
           <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">
-            Dashboard
+            {t('dashboard.title')}
           </h1>
         </div>
         <div className="flex gap-3 relative">
-          <div ref={exportRef} className="relative">
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Download size={14} />}
-              onClick={toggleExport}
-            >
-              Export
-            </Button>
-            {exportOpen && (
-              <div
-                className="fixed z-[9999] w-44 border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]"
-                style={{ top: exportPos.top, left: exportPos.left }}
-              >
-                <button
-                  onClick={() => { exportToJSON(projects, tasks, notes); setExportOpen(false); addToast({ message: 'Exported as JSON', type: 'success' }); }}
-                  className="w-full text-left px-4 py-3 font-mono text-sm text-on-surface dark:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#252533] border-b border-on-surface/10 dark:border-[#464552]/50 flex items-center gap-3"
-                >
-                  <span className="text-xs">📄</span>
-                  <div>
-                    <p className="font-medium">JSON</p>
-                    <p className="text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">All data in one file</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { exportToCSV(projects, tasks, notes); setExportOpen(false); addToast({ message: 'Exported as CSV (3 files)', type: 'success' }); }}
-                  className="w-full text-left px-4 py-3 font-mono text-sm text-on-surface dark:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#252533] border-b border-on-surface/10 dark:border-[#464552]/50 flex items-center gap-3"
-                >
-                  <span className="text-xs">📊</span>
-                  <div>
-                    <p className="font-medium">CSV</p>
-                    <p className="text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">Separate files per entity</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { window.print(); setExportOpen(false); }}
-                  className="w-full text-left px-4 py-3 font-mono text-sm text-on-surface dark:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#252533] flex items-center gap-3"
-                >
-                  <span className="text-xs">🖨️</span>
-                  <div>
-                    <p className="font-medium">PDF</p>
-                    <p className="text-[10px] text-on-surface-variant dark:text-[#c8c4d4]">A4 report, ready to print</p>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
           <Button
             variant="primary"
             size="sm"
             icon={<FolderKanban size={14} />}
             onClick={() => requireAuth(() => setActivePage('projects'))}
           >
-            New Project
+            {t('dashboard.new_project')}
           </Button>
         </div>
       </div>
@@ -297,17 +229,36 @@ export function DashboardPage() {
         }
       </section>
 
+      {/* Empty state for fresh start */}
+      {!loading && projects.length === 0 && tasks.length === 0 && notes.length === 0 && (
+        <EmptyState
+          icon={<Zap size={24} />}
+          title={t('dashboard.empty_title')}
+          description={t('dashboard.empty_desc')}
+          action={
+            <div className="flex gap-3">
+              <Button variant="primary" icon={<FolderKanban size={14} />} onClick={() => setActivePage('projects')}>
+                {t('dashboard.empty_action_project')}
+              </Button>
+              <Button variant="outline" icon={<FileText size={14} />} onClick={() => setActivePage('settings')}>
+                {t('dashboard.empty_action_docs')}
+              </Button>
+            </div>
+          }
+        />
+      )}
+
       {/* In-progress tasks + Projects */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-8">
         {/* Active Projects */}
         <section aria-label="Active projects" className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Active Projects</h2>
+            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('dashboard.active_projects')}</h2>
             <button
               onClick={() => setActivePage('projects')}
               className="font-mono text-xs text-primary dark:text-[var(--color-primary-fixed-dim-dark)] hover:underline flex items-center gap-1"
             >
-              View all <ArrowRight size={12} />
+              {t('dashboard.view_all')} <ArrowRight size={12} />
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -329,7 +280,7 @@ export function DashboardPage() {
         {/* Recent activity */}
         <section aria-label="Recent activity" className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]">
           <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
-            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Recent Activity</h2>
+            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('dashboard.recent_activity')}</h2>
             <Activity size={14} className="text-on-surface-variant dark:text-[#c8c4d4]" />
           </div>
           <div className="px-3 md:px-5 py-2">
@@ -368,20 +319,20 @@ export function DashboardPage() {
         className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] p-3 md:p-5 shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-3 mb-3 md:mb-5">
-          <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Task Pipeline</h2>
+          <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('dashboard.task_pipeline')}</h2>
           <button
             onClick={() => setActivePage('kanban')}
             className="font-mono text-xs text-primary dark:text-[var(--color-primary-fixed-dim-dark)] hover:underline flex items-center gap-1"
           >
-            Open Kanban <ArrowRight size={12} />
+            {t('dashboard.open_kanban')} <ArrowRight size={12} />
           </button>
         </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
             {([
-              { label: 'Backlog', count: tasks.filter(t => t.status === 'backlog').length, color: 'bg-on-surface-variant dark:bg-[#464552]' },
-              { label: 'In Progress', count: inProgressTasks, color: 'bg-[#06b6d4]' },
-              { label: 'Review', count: tasks.filter(t => t.status === 'review').length, color: 'bg-[#eab308]' },
-              { label: 'Done', count: completedTasks, color: 'bg-[#84cc16]' },
+              { label: t('dashboard.backlog'), count: tasks.filter(t => t.status === 'backlog').length, color: 'bg-on-surface-variant dark:bg-[#464552]' },
+              { label: t('dashboard.in_progress'), count: inProgressTasks, color: 'bg-[#06b6d4]' },
+              { label: t('dashboard.review'), count: tasks.filter(t => t.status === 'review').length, color: 'bg-[#eab308]' },
+              { label: t('dashboard.done'), count: completedTasks, color: 'bg-[#84cc16]' },
             ] as const).map(col => (
               <div key={col.label} className="text-center p-2 md:p-3 border border-on-surface/20 dark:border-[#464552]">
                 <div className={`w-6 h-6 md:w-8 md:h-8 ${col.color} mx-auto mb-1 md:mb-2 flex items-center justify-center border border-on-surface dark:border-[#464552]`}>
@@ -400,64 +351,64 @@ export function DashboardPage() {
     <div className="print-only" aria-hidden="true">
       {/* COVER PAGE */}
       <div className="print-cover">
-        <p className="subtitle">Developer OS · System Report</p>
-        <h1>LabsYusJuL</h1>
+        <p className="subtitle">{t('dashboard.print_subtitle')}</p>
+        <h1>{t('dashboard.print_brand')}</h1>
         <div className="divider" />
         <p className="date">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        <p className="version">v1.0.0</p>
+        <p className="version">{t('dashboard.print_version')}</p>
         <div className="stats-summary">
           <div className="stat-item">
             <div className="num">{activeProjects}</div>
-            <div className="lbl">Active Projects</div>
+            <div className="lbl">{t('dashboard.stat_active_projects')}</div>
           </div>
           <div className="stat-item">
             <div className="num">{tasks.length}</div>
-            <div className="lbl">Total Tasks</div>
+            <div className="lbl">{t('dashboard.stat_total_tasks')}</div>
           </div>
           <div className="stat-item">
             <div className="num">{completedTasks}</div>
-            <div className="lbl">Completed</div>
+            <div className="lbl">{t('dashboard.stat_completed')}</div>
           </div>
           <div className="stat-item">
             <div className="num">{notes.length}</div>
-            <div className="lbl">Notes</div>
+            <div className="lbl">{t('dashboard.stat_notes')}</div>
           </div>
         </div>
       </div>
 
       {/* SUMMARY */}
       <div className="print-section">
-        <h2 className="print-sec-title">Executive Summary</h2>
-        <p className="print-sec-desc">Current system snapshot across all workspaces.</p>
+        <h2 className="print-sec-title">{t('dashboard.print_exec_summary')}</h2>
+        <p className="print-sec-desc">{t('dashboard.print_exec_desc')}</p>
         <div className="print-summary">
           <div className="print-summary-item">
             <div className="value">{activeProjects}</div>
-            <div className="label">Active Projects</div>
+            <div className="label">{t('dashboard.stat_active_projects')}</div>
           </div>
           <div className="print-summary-item">
             <div className="value">{tasks.length}</div>
-            <div className="label">Total Tasks</div>
+            <div className="label">{t('dashboard.stat_total_tasks')}</div>
           </div>
           <div className="print-summary-item">
             <div className="value">{completedTasks}</div>
-            <div className="label">Completed</div>
+            <div className="label">{t('dashboard.stat_completed')}</div>
           </div>
           <div className="print-summary-item">
             <div className="value">{inProgressTasks}</div>
-            <div className="label">In Progress</div>
+            <div className="label">{t('dashboard.in_progress')}</div>
           </div>
         </div>
       </div>
 
       {/* PIPELINE */}
       <div className="print-section">
-        <h2 className="print-sec-title">Task Pipeline</h2>
+        <h2 className="print-sec-title">{t('dashboard.task_pipeline')}</h2>
         <div className="print-pipeline">
           {([
-            { label: 'Backlog', count: tasks.filter(t => t.status === 'backlog').length, cls: 'print-badge-backlog' },
-            { label: 'In Progress', count: inProgressTasks, cls: 'print-badge-in-progress' },
-            { label: 'Review', count: tasks.filter(t => t.status === 'review').length, cls: 'print-badge-review' },
-            { label: 'Done', count: completedTasks, cls: 'print-badge-done' },
+            { label: t('dashboard.backlog'), count: tasks.filter(t => t.status === 'backlog').length, cls: 'print-badge-backlog' },
+            { label: t('dashboard.in_progress'), count: inProgressTasks, cls: 'print-badge-in-progress' },
+            { label: t('dashboard.review'), count: tasks.filter(t => t.status === 'review').length, cls: 'print-badge-review' },
+            { label: t('dashboard.done'), count: completedTasks, cls: 'print-badge-done' },
           ] as const).map(col => (
             <div key={col.label} className="print-pipeline-item">
               <div className="count">{col.count}</div>
@@ -469,19 +420,19 @@ export function DashboardPage() {
 
       {/* PROJECTS TABLE */}
       <div className="print-section page-break">
-        <h2 className="print-sec-title">Projects</h2>
-        <p className="print-sec-desc">All projects sorted by status and priority.</p>
+        <h2 className="print-sec-title">{t('dashboard.print_section_projects')}</h2>
+        <p className="print-sec-desc">{t('dashboard.print_section_projects_desc')}</p>
         {loading ? (
-          <p className="print-sec-desc">Loading...</p>
+          <p className="print-sec-desc">{t('common.loading_ellipsis')}</p>
         ) : (
           <table className="print-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Progress</th>
-                <th>Tasks</th>
+                <th>{t('dashboard.print_name')}</th>
+                <th>{t('dashboard.print_status')}</th>
+                <th>{t('dashboard.print_priority')}</th>
+                <th>{t('dashboard.print_progress')}</th>
+                <th>{t('dashboard.tasks_label')}</th>
               </tr>
             </thead>
             <tbody>
@@ -506,19 +457,19 @@ export function DashboardPage() {
 
       {/* TASKS TABLE */}
       <div className="print-section page-break">
-        <h2 className="print-sec-title">Tasks</h2>
-        <p className="print-sec-desc">All tasks grouped by current status.</p>
+        <h2 className="print-sec-title">{t('dashboard.print_section_tasks')}</h2>
+        <p className="print-sec-desc">{t('dashboard.print_section_tasks_desc')}</p>
         {loading ? (
-          <p className="print-sec-desc">Loading...</p>
+          <p className="print-sec-desc">{t('common.loading_ellipsis')}</p>
         ) : (
           <table className="print-table">
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Project</th>
-                <th>Tags</th>
+                <th>{t('dashboard.print_title')}</th>
+                <th>{t('dashboard.print_status')}</th>
+                <th>{t('dashboard.print_priority')}</th>
+                <th>{t('dashboard.print_project')}</th>
+                <th>{t('dashboard.print_tags')}</th>
               </tr>
             </thead>
             <tbody>
@@ -541,15 +492,15 @@ export function DashboardPage() {
 
       {/* NOTES */}
       <div className="print-section page-break">
-        <h2 className="print-sec-title">Notes</h2>
-        <p className="print-sec-desc">All saved notes and documentation.</p>
+        <h2 className="print-sec-title">{t('dashboard.print_section_notes')}</h2>
+        <p className="print-sec-desc">{t('dashboard.print_section_notes_desc')}</p>
         <div className="print-notes">
           {notes.map(n => (
             <div key={n.id} className="print-note">
               <h3>{n.title.replace(/^#+\s*/, '')}</h3>
               <div style={{ marginBottom: '4pt' }}>
                 {n.tags.map(tag => <span key={tag} className="print-tag">{tag}</span>)}
-                {n.pinned && <span className="pinned-mark">★ PINNED</span>}
+                {n.pinned && <span className="pinned-mark">★ {t('dashboard.print_pinned')}</span>}
               </div>
               <p>
                 {n.content
