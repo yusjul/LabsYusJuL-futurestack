@@ -35,9 +35,13 @@ const rules: BotRule[] = [
     ],
   },
 
-  // ─── TENTANG APP ─────────────────────────────────────────────────────────
+  // ─── TENTANG APP (dipersempit) ──────────────────────────────────────────
   {
-    patterns: [/\b(apa\s*(ini|itu)|tentang|about|futurestack|apk\s*ini|app\s*ini)\b/i],
+    patterns: [
+      /\bfuturestack\b/i,
+      /\b(app|apk|aplikasi)\s*(ini|itu)\b/i,
+      /\btentang\s*(app|apk|aplikasi|platform)\s*ini\b/i,
+    ],
     responses: [
       'FutureStack adalah developer OS — platform untuk mengelola project, task, notes, dan workflow coding kamu dalam satu tempat! 🚀',
       'Ini FutureStack! Sebuah project management app dengan gaya neobrutalism yang keren. Kamu bisa kelola task, tulis notes, dan banyak lagi.',
@@ -761,7 +765,7 @@ const rules: BotRule[] = [
     responses: [
       'EDA (Exploratory Data Analysis) adalah tahap krusial untuk memahami data sebelum modeling. "Look before you leap!" 🔍',
       'Checklist EDA lengkap:\n✅ Shape & dimensi dataset\n✅ Tipe data setiap kolom\n✅ Missing values\n✅ Duplikat\n✅ Statistik deskriptif\n✅ Distribusi setiap variabel\n✅ Outlier\n✅ Korelasi antar variabel\n✅ Distribusi target variable\n✅ Insight bisnis awal',
-      'Automated EDA dengan library:\n```python\n# ydata-p  rofiling (dulu pandas-profiling)\nfrom ydata_profiling import ProfileReport\nreport = ProfileReport(df)\nreport.to_notebook_iframe()\n\n# Sweetviz\nimport sweetviz as sv\nreport = sv.analyze(df)\nreport.show_html("report.html")\n```',
+      'Automated EDA dengan library:\n```python\n# ydata-profiling (dulu pandas-profiling)\nfrom ydata_profiling import ProfileReport\nreport = ProfileReport(df)\nreport.to_notebook_iframe()\n\n# Sweetviz\nimport sweetviz as sv\nreport = sv.analyze(df)\nreport.show_html("report.html")\n```',
       'EDA questions yang harus dijawab:\n1. Berapa banyak data dan berapa fiturnya?\n2. Apakah ada missing values? Di mana?\n3. Bagaimana distribusi target variable?\n4. Fitur mana yang paling berkorelasi dengan target?\n5. Apakah ada data leak atau anomali? 🎯',
     ],
   },
@@ -937,6 +941,1250 @@ const rules: BotRule[] = [
       'Portfolio data science yang kuat:\n✅ 3-5 project end-to-end (problem → insight → rekomendasi)\n✅ Gunakan dataset nyata/relevan, bukan hanya Iris atau Titanic\n✅ Kode bersih dan terdokumentasi di GitHub\n✅ Notebook yang bercerita (bukan hanya kode)\n✅ Blog post atau writeup yang menjelaskan insight\n✅ Satu project dengan deployment (Streamlit, Flask, Hugging Face) 🚀',
       'Tools yang wajib dikuasai untuk kerja di bidang data:\n• SQL (wajib!)\n• Python (Pandas, NumPy, Scikit-learn)\n• Visualisasi (Matplotlib, Seaborn, Tableau/Power BI)\n• Git & version control\n• Cloud basics (AWS/GCP/Azure)\n• Communication skill (sering dilupakan tapi sangat penting!) 💼',
       'Sumber belajar data science gratis:\n📚 Kaggle Courses (Python, ML, SQL, Deep Learning)\n📚 fast.ai (Deep Learning practical approach)\n📚 Stat Quest with Josh Starmer (statistika visual)\n📚 Towards Data Science (Medium)\n📚 CS229 Stanford (ML course)\n📚 "Hands-On ML" — Aurélien Géron (buku terbaik!) 📖',
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ████████   PERTANYAAN SPESIFIK "APA ITU / JELASKAN / PENGERTIAN"   ████████
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // ─── APA ITU DATA SCIENCE ────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(data\s*science|ilmu\s*data)/i,
+      /jelaskan\s*(tentang\s*)?data\s*science/i,
+      /data\s*science\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Data Science adalah bidang ilmu yang menggabungkan statistika, pemrograman, dan domain knowledge untuk mengekstrak wawasan (insight) bermakna dari data mentah. 📊\n\nIntinya: mengubah data jadi keputusan bisnis yang cerdas!',
+      'Data Science = Statistika + Coding + Domain Knowledge. Prosesnya: kumpulkan data → bersihkan → eksplorasi → buat model → komunikasikan insight → ambil keputusan. 🔬',
+      'Sederhananya, Data Science adalah seni dan ilmu menjawab pertanyaan bisnis menggunakan data. Contoh: "Kenapa penjualan turun bulan ini?" atau "Pelanggan mana yang akan churn?" 💡',
+    ],
+  },
+
+  // ─── APA ITU MACHINE LEARNING ────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(machine\s*learning|ml\b|belajar\s*mesin)/i,
+      /jelaskan\s*(tentang\s*)?machine\s*learning/i,
+      /machine\s*learning\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Machine Learning adalah cabang AI di mana komputer belajar dari data tanpa diprogram secara eksplisit. Komputer menemukan pola sendiri! 🤖\n\nContoh: Netflix merekomendasikan film berdasarkan riwayat tontonanmu.',
+      'ML = program yang belajar dari pengalaman (data). Ada 3 jenis:\n🏷️ Supervised — belajar dari data berlabel\n🔍 Unsupervised — temukan pola tanpa label\n🎮 Reinforcement — belajar dari reward & punishment',
+      'Machine Learning membuat komputer "pintar" tanpa harus ditulis aturannya satu per satu. Kamu kasih data → komputer cari polanya sendiri! Inilah fondasi AI modern. 🧠',
+    ],
+  },
+
+  // ─── APA ITU DEEP LEARNING ───────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(deep\s*learning|neural\s*network|jaringan\s*saraf)/i,
+      /jelaskan\s*(tentang\s*)?deep\s*learning/i,
+      /deep\s*learning\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Deep Learning adalah sub-bidang Machine Learning yang menggunakan Neural Network berlapis-lapis (deep = banyak lapisan). Terinspirasi cara kerja otak manusia! 🧠\n\nSangat powerful untuk gambar, suara, dan teks.',
+      'Deep Learning vs ML biasa:\n• ML biasa → butuh feature engineering manual\n• Deep Learning → belajar fitur otomatis dari raw data\n• Deep Learning butuh lebih banyak data & GPU! ⚡',
+      'Neural Network adalah otak dari Deep Learning. Terdiri dari neuron buatan yang tersambung berlapis. Semakin "deep" (banyak layer), semakin kompleks yang bisa dipelajari! 🔬',
+    ],
+  },
+
+  // ─── APA ITU PANDAS ──────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*pandas/i,
+      /jelaskan\s*(tentang\s*)?pandas/i,
+      /pandas\s*(itu\s*apa|adalah|artinya|digunakan\s*untuk)/i,
+      /fungsi\s*pandas/i,
+      /kegunaan\s*pandas/i,
+    ],
+    responses: [
+      'Pandas adalah library Python untuk manipulasi dan analisis data. Bisa dibilang "Excel-nya Python" — tapi jauh lebih powerful! 🐼\n\nStruktur utamanya:\n• DataFrame — tabel 2D (baris × kolom)\n• Series — satu kolom/baris data',
+      'Pandas digunakan untuk:\n✅ Membaca data (CSV, Excel, JSON, SQL)\n✅ Membersihkan data (handle null, duplikat)\n✅ Transformasi & agregasi data\n✅ Merge/join antar tabel\n✅ Analisis statistik dasar\n\nImport dengan: `import pandas as pd` 🐍',
+      'Pandas = library wajib #1 data scientist Python. Tanpa Pandas, analisis data di Python akan sangat menyakitkan! Install dengan: `pip install pandas` 📦',
+    ],
+  },
+
+  // ─── APA ITU NUMPY ───────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(numpy|num\s*py)/i,
+      /jelaskan\s*(tentang\s*)?numpy/i,
+      /numpy\s*(itu\s*apa|adalah|artinya|digunakan\s*untuk)/i,
+      /fungsi\s*numpy|kegunaan\s*numpy/i,
+    ],
+    responses: [
+      'NumPy (Numerical Python) adalah library untuk komputasi numerik di Python. Fondasi dari hampir semua library data science! 🔢\n\nFitur utama: array N-dimensi yang super cepat karena operasinya di-vectorized (tidak pakai loop Python).',
+      'NumPy digunakan untuk:\n• Operasi matematika pada array/matrix\n• Aljabar linear\n• Transformasi Fourier\n• Statistik dasar\n\nImport: `import numpy as np`\nFun fact: Pandas, Scikit-learn, dan TensorFlow semuanya built on top of NumPy! 📐',
+    ],
+  },
+
+  // ─── APA ITU DATAFRAME ───────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(dataframe|data\s*frame)/i,
+      /jelaskan\s*(tentang\s*)?dataframe/i,
+      /dataframe\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'DataFrame adalah struktur data 2 dimensi di Pandas — seperti tabel Excel atau tabel database. Punya baris (rows) dan kolom (columns) dengan label! 📋\n\n```python\nimport pandas as pd\ndf = pd.read_csv("data.csv")\ndf.head()  # lihat 5 baris pertama\n```',
+      'DataFrame = tabel data di Python. Tiap kolom bisa punya tipe data berbeda (angka, teks, tanggal). Sangat fleksibel untuk analisis data! 🐼\n\nBisa dibuat dari: dict, list, CSV, Excel, JSON, SQL query, dan banyak lagi.',
+    ],
+  },
+
+  // ─── APA ITU EDA ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(eda|exploratory\s*data\s*analysis|analisis\s*eksplorasi)/i,
+      /jelaskan\s*(tentang\s*)?eda/i,
+      /eda\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'EDA (Exploratory Data Analysis) adalah proses awal analisis data untuk memahami karakteristik, pola, dan anomali sebelum membangun model. 🔍\n\nSeperti "kenalan dulu" dengan datamu sebelum mengambil kesimpulan!',
+      'EDA mencakup:\n📊 Statistik deskriptif (mean, median, std)\n📈 Visualisasi distribusi\n🔗 Analisis korelasi antar variabel\n🚨 Deteksi outlier & missing values\n🎯 Identifikasi pola & insight awal\n\nTahap yang paling sering dilewatkan padahal paling penting! ⚠️',
+    ],
+  },
+
+  // ─── APA ITU OVERFITTING ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(overfitting|underfitting)/i,
+      /jelaskan\s*(tentang\s*)?(overfitting|underfitting)/i,
+      /(overfitting|underfitting)\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Overfitting = model terlalu "hafal" data training sehingga buruk saat prediksi data baru. Seperti siswa yang menghafal soal ujian tapi tidak paham materinya! 📚\n\nSolusi: regularisasi, lebih banyak data, dropout, cross-validation.',
+      'Underfitting = model terlalu sederhana, bahkan tidak bisa menangkap pola di training data. Akurasi training & test sama-sama rendah.\n\nOverfitting vs Underfitting:\n📈 Overfit → training tinggi, test rendah\n📉 Underfit → training rendah, test rendah\n🎯 Ideal → keduanya tinggi & dekat! ⚖️',
+    ],
+  },
+
+  // ─── APA ITU RANDOM FOREST ───────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(random\s*forest|hutan\s*acak)/i,
+      /jelaskan\s*(tentang\s*)?random\s*forest/i,
+      /random\s*forest\s*(itu\s*apa|adalah|artinya|cara\s*kerja)/i,
+      /cara\s*kerja\s*random\s*forest/i,
+    ],
+    responses: [
+      'Random Forest adalah kumpulan (ensemble) dari banyak Decision Tree. Setiap tree "voting" untuk prediksi akhir — mayoritas menang! 🌲🌲🌲\n\nKenapa "random"? Karena setiap tree dilatih dengan:\n• Subset data yang random (bootstrap sampling)\n• Subset fitur yang random',
+      'Random Forest sangat powerful karena:\n✅ Robust terhadap overfitting\n✅ Handle missing values\n✅ Bisa data numerik & kategorik\n✅ Kasih feature importance\n✅ Hampir tidak butuh tuning\n\nKekurangan: lambat untuk data sangat besar & sulit diinterpretasi. 🌳',
+    ],
+  },
+
+  // ─── APA ITU GRADIENT BOOSTING / XGBOOST ────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(gradient\s*boosting|xgboost|lightgbm|catboost|boosting)/i,
+      /jelaskan\s*(tentang\s*)?(gradient\s*boosting|xgboost|boosting)/i,
+      /(gradient\s*boosting|xgboost)\s*(itu\s*apa|adalah|artinya|cara\s*kerja)/i,
+    ],
+    responses: [
+      'Gradient Boosting membangun model secara sekuensial — setiap model baru belajar dari kesalahan model sebelumnya. Berbeda dengan Random Forest yang paralel! 🔄\n\nXGBoost, LightGBM, CatBoost = implementasi Gradient Boosting yang sangat dioptimasi. Sering menang di kompetisi Kaggle!',
+      'Perbedaan Random Forest vs Gradient Boosting:\n🌲 Random Forest → pohon dibangun PARALEL, voting\n⚡ Gradient Boosting → pohon dibangun BERURUTAN, koreksi error\n\nGradient Boosting biasanya lebih akurat tapi lebih sensitif terhadap hyperparameter dan outlier! 🎯',
+    ],
+  },
+
+  // ─── APA ITU CROSS VALIDATION ────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(cross.?validat|k.?fold|validasi\s*silang)/i,
+      /jelaskan\s*(tentang\s*)?(cross.?validat|k.?fold)/i,
+      /cross\s*validat\w*\s*(itu\s*apa|adalah|artinya|cara\s*kerja)/i,
+    ],
+    responses: [
+      'Cross-Validation adalah teknik evaluasi model yang lebih robust dari train-test split biasa. Data dibagi ke-K fold, model dilatih K kali — setiap kali fold berbeda jadi test set! 🔄\n\nHasil: estimasi performa yang lebih akurat dan stabil.',
+      '5-Fold Cross Validation:\n1. Bagi data jadi 5 bagian\n2. Iterasi 1: fold 1 = test, fold 2-5 = train\n3. Iterasi 2: fold 2 = test, fold 1,3-5 = train\n4. ... ulangi 5x\n5. Rata-rata 5 hasil = performa final\n\nMenggunakan semua data untuk training DAN testing! ⚖️',
+    ],
+  },
+
+  // ─── APA ITU FEATURE ENGINEERING ─────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(feature\s*engineering|rekayasa\s*fitur)/i,
+      /jelaskan\s*(tentang\s*)?feature\s*engineering/i,
+      /feature\s*engineering\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Feature Engineering adalah proses membuat atau memodifikasi fitur (kolom) input untuk meningkatkan performa model ML. Sering disebut sebagai "seni" dalam data science! 🏗️\n\nContoh: dari kolom "tanggal", bisa diekstrak: tahun, bulan, hari, hari-dalam-seminggu, is_weekend, is_holiday.',
+      '"Feature engineering is the most important part of ML." — kebanyakan kaggle winner. Model yang bagus dengan fitur jelek kalah dari model biasa dengan fitur bagus! 🥇\n\nTeknik umum: binning, encoding, interaksi fitur, lag feature, rolling statistics.',
+    ],
+  },
+
+  // ─── APA ITU NORMALISASI / STANDARDISASI ─────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(normalisasi|standardisasi|scaling|feature\s*scaling)/i,
+      /jelaskan\s*(tentang\s*)?(normalisasi|standardisasi|scaling)/i,
+      /(normalisasi|standardisasi)\s*(itu\s*apa|adalah|perbedaan|bedanya)/i,
+      /bedanya\s*(normalisasi|standardisasi)/i,
+    ],
+    responses: [
+      'Normalisasi vs Standardisasi:\n📏 Normalisasi (Min-Max) → rescale ke range [0,1]\n📐 Standardisasi (Z-score) → mean=0, std=1\n\nKapan pakai:\n• Normalisasi → kalau distribusi tidak normal, Neural Network\n• Standardisasi → distribusi normal, SVM, PCA, regresi 📊',
+      'Feature scaling penting agar fitur dengan skala berbeda tidak mendominasi model. Contoh: "usia (0-100)" vs "gaji (1jt-100jt)" tanpa scaling akan buat model bias ke gaji! ⚖️\n\n```python\nfrom sklearn.preprocessing import StandardScaler, MinMaxScaler\n```',
+    ],
+  },
+
+  // ─── APA ITU CONFUSION MATRIX ────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(confusion\s*matrix|matriks\s*konfusi)/i,
+      /jelaskan\s*(tentang\s*)?confusion\s*matrix/i,
+      /confusion\s*matrix\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Confusion Matrix adalah tabel yang merangkum performa model klasifikasi:\n\n|              | Prediksi Positif | Prediksi Negatif |\n|---|---|---|\n| Aktual Positif | TP (True Positive)  | FN (False Negative) |\n| Aktual Negatif | FP (False Positive) | TN (True Negative)  |\n\nDari sini dihitung: Accuracy, Precision, Recall, F1! 🎯',
+      'Confusion Matrix membantu kita lihat JENIS kesalahan model:\n❌ False Positive (FP) = prediksi positif padahal negatif (Type I Error)\n❌ False Negative (FN) = prediksi negatif padahal positif (Type II Error)\n\nContoh: model deteksi kanker → FN lebih berbahaya dari FP! ⚠️',
+    ],
+  },
+
+  // ─── APA ITU PRECISION RECALL F1 ─────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(precision|recall|f1.score|f1\s*score)/i,
+      /jelaskan\s*(tentang\s*)?(precision|recall|f1)/i,
+      /perbedaan\s*(precision|recall|f1|accuracy)/i,
+      /bedanya\s*(precision|recall|f1|accuracy)/i,
+    ],
+    responses: [
+      'Metric klasifikasi:\n🎯 Accuracy = (TP+TN)/(total) — proporsi benar keseluruhan\n🔍 Precision = TP/(TP+FP) — dari prediksi positif, berapa yang benar?\n📡 Recall = TP/(TP+FN) — dari semua positif aktual, berapa yang tertangkap?\n⚖️ F1 = 2×(P×R)/(P+R) — harmonic mean precision & recall',
+      'Kapan prioritaskan metric apa?\n• Spam detection → tingkatkan Precision (tidak mau email penting masuk spam)\n• Deteksi penyakit → tingkatkan Recall (tidak mau kasus positif terlewat)\n• Imbalanced data → F1-score atau ROC-AUC, bukan Accuracy! 🏥',
+    ],
+  },
+
+  // ─── APA ITU ROC AUC ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(roc|auc|roc.?auc|kurva\s*roc)/i,
+      /jelaskan\s*(tentang\s*)?(roc|auc|roc.auc)/i,
+      /roc.?auc\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'ROC (Receiver Operating Characteristic) adalah kurva yang menunjukkan trade-off antara True Positive Rate (Recall) vs False Positive Rate pada berbagai threshold. 📈\n\nAUC (Area Under Curve):\n• AUC = 1.0 → model sempurna\n• AUC = 0.5 → model random (tidak berguna)\n• AUC > 0.8 → model bagus',
+      'AUC-ROC mengukur kemampuan model membedakan kelas positif dan negatif, INDEPENDENT dari threshold. Sangat berguna untuk imbalanced dataset! ⚖️\n\nBerbeda dengan accuracy yang sensitif terhadap class imbalance.',
+    ],
+  },
+
+  // ─── APA ITU K-MEANS ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(k.?means|kmeans)/i,
+      /jelaskan\s*(tentang\s*)?k.?means/i,
+      /k.?means\s*(itu\s*apa|adalah|artinya|cara\s*kerja)/i,
+      /cara\s*kerja\s*k.?means/i,
+    ],
+    responses: [
+      'K-Means adalah algoritma clustering yang mengelompokkan data ke dalam K cluster. Cara kerja:\n1. Pilih K centroid secara random\n2. Assign setiap titik ke centroid terdekat\n3. Update centroid = rata-rata titik di cluster\n4. Ulangi langkah 2-3 sampai konvergen! 🔵🟢🟡',
+      'K-Means cocok untuk:\n✅ Segmentasi pelanggan\n✅ Kompresi gambar\n✅ Anomaly detection\n\nKeterbatasan:\n❌ Harus tentukan K terlebih dahulu\n❌ Sensitif terhadap outlier\n❌ Hanya bisa cluster berbentuk bulat (spherical)\n\nGunakan Elbow Method atau Silhouette Score untuk cari K optimal! 🎯',
+    ],
+  },
+
+  // ─── APA ITU PCA ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(pca|principal\s*component|dimensionality\s*reduction|reduksi\s*dimensi)/i,
+      /jelaskan\s*(tentang\s*)?(pca|principal\s*component|reduksi\s*dimensi)/i,
+      /pca\s*(itu\s*apa|adalah|artinya|cara\s*kerja)/i,
+    ],
+    responses: [
+      'PCA (Principal Component Analysis) adalah teknik untuk mengurangi jumlah fitur (dimensi) sambil mempertahankan sebanyak mungkin informasi (variance). 📉\n\nMengubah fitur asli → kombinasi linear baru yang tidak berkorelasi (Principal Components).',
+      'Kegunaan PCA:\n• Kurangi curse of dimensionality\n• Visualisasi data tinggi dimensi ke 2D/3D\n• Hapus noise dan redudansi\n• Percepat training ML\n\n```python\nfrom sklearn.decomposition import PCA\npca = PCA(n_components=2)\nX_2d = pca.fit_transform(X_scaled)\nprint(pca.explained_variance_ratio_)  # berapa % info yang dipertahankan\n``` 🔬',
+    ],
+  },
+
+  // ─── APA ITU TRANSFER LEARNING ───────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(transfer\s*learning|fine.?tuning)/i,
+      /jelaskan\s*(tentang\s*)?(transfer\s*learning|fine.?tuning)/i,
+      /transfer\s*learning\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Transfer Learning = memanfaatkan model yang sudah dilatih pada dataset besar, lalu fine-tune untuk task spesifik kamu. Tidak perlu mulai dari nol! ♻️\n\nContoh: pakai ResNet yang sudah dilatih 1M gambar ImageNet → fine-tune untuk klasifikasi X-ray penyakit.',
+      'Transfer Learning sangat berguna ketika:\n• Data kamu terbatas\n• Komputasi terbatas\n• Task mirip dengan domain pre-trained model\n\nModel populer: BERT (NLP), ResNet/EfficientNet (gambar), GPT (teks generasi) 🚀',
+    ],
+  },
+
+  // ─── APA ITU NLP ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(nlp|natural\s*language\s*processing|pemrosesan\s*bahasa)/i,
+      /jelaskan\s*(tentang\s*)?nlp/i,
+      /nlp\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'NLP (Natural Language Processing) adalah cabang AI yang memungkinkan komputer memahami, menginterpretasi, dan menghasilkan bahasa manusia. 💬\n\nAplikasi nyata: chatbot, Google Translate, Siri/Alexa, analisis sentimen, summarization.',
+      'NLP pipeline standar:\n1. Tokenization (pecah teks jadi kata/token)\n2. Stop word removal (hapus kata tidak penting)\n3. Stemming/Lemmatization (kata dasar)\n4. Vectorization (TF-IDF, Word2Vec, BERT)\n5. Model (klasifikasi, clustering, dll) 📝',
+    ],
+  },
+
+  // ─── APA ITU SENTIMENT ANALYSIS ──────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(sentiment\s*anal|analisis\s*sentimen)/i,
+      /jelaskan\s*(tentang\s*)?(sentiment\s*anal|analisis\s*sentimen)/i,
+      /sentiment\s*anal\w*\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Sentiment Analysis adalah teknik NLP untuk mendeteksi polaritas emosi dalam teks: positif, negatif, atau netral. 😊😐😠\n\nAplikasi: analisis review produk, monitoring brand di sosmed, feedback pelanggan, analisis berita.',
+      'Pendekatan Sentiment Analysis:\n• Rule-based: kamus kata positif/negatif (VADER, TextBlob)\n• ML: Naive Bayes, SVM dengan TF-IDF\n• Deep Learning: LSTM, BERT (state of the art!)\n\nBahasa Indonesia: pakai IndoBERT dari HuggingFace! 🇮🇩',
+    ],
+  },
+
+  // ─── APA ITU TIME SERIES ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(time\s*series|deret\s*waktu|data\s*berkala)/i,
+      /jelaskan\s*(tentang\s*)?(time\s*series|deret\s*waktu)/i,
+      /time\s*series\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'Time Series adalah data yang dikumpulkan secara berurutan berdasarkan waktu. Setiap titik data memiliki timestamp. ⏱️\n\nContoh: harga saham harian, suhu per jam, penjualan bulanan, traffic website per menit.',
+      'Komponen Time Series:\n📈 Trend — kecenderungan naik/turun jangka panjang\n🔄 Seasonality — pola berulang periodik (harian/mingguan/tahunan)\n〰️ Cyclical — fluktuasi jangka panjang (tidak periodik tetap)\n🔀 Residual/Noise — variasi acak yang tidak bisa dijelaskan\n\nDecompose dengan `seasonal_decompose` dari statsmodels! 📊',
+    ],
+  },
+
+  // ─── APA ITU SQL ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*sql\b/i,
+      /jelaskan\s*(tentang\s*)?sql\b/i,
+      /sql\s*(itu\s*apa|adalah|artinya|digunakan\s*untuk)\b/i,
+      /fungsi\s*sql|kegunaan\s*sql/i,
+    ],
+    responses: [
+      'SQL (Structured Query Language) adalah bahasa untuk berkomunikasi dengan database relasional — membuat, membaca, mengupdate, dan menghapus data. 🗄️\n\nSQL digunakan di hampir semua database: MySQL, PostgreSQL, SQLite, BigQuery, Snowflake, dll.',
+      'SQL command utama:\n📖 SELECT — ambil data\n➕ INSERT — tambah data\n✏️ UPDATE — ubah data\n🗑️ DELETE — hapus data\n🏗️ CREATE TABLE — buat tabel\n\nSQL adalah skill WAJIB untuk Data Analyst dan Data Engineer! Hampir semua wawancara kerja di bidang data pasti ada SQL. 💼',
+    ],
+  },
+
+  // ─── APA ITU A/B TESTING ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(a\/b\s*test|ab\s*test|split\s*test)/i,
+      /jelaskan\s*(tentang\s*)?(a\/b\s*test|ab\s*test)/i,
+      /(a\/b|ab)\s*test\w*\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'A/B Testing adalah eksperimen terkontrol untuk membandingkan dua versi (A dan B) dari sesuatu — untuk menentukan mana yang lebih efektif. 🧪\n\nContoh: tombol "Beli Sekarang" warna merah (A) vs hijau (B) — mana yang conversion rate-nya lebih tinggi?',
+      'Alur A/B Testing yang benar:\n1️⃣ Tentukan hipotesis & metric utama\n2️⃣ Hitung sample size yang dibutuhkan\n3️⃣ Randomisasi user ke grup A & B\n4️⃣ Jalankan cukup lama (jangan hentikan terlalu cepat!)\n5️⃣ Analisis dengan t-test atau chi-square\n6️⃣ Keputusan berdasarkan statistical significance + business impact 🎯',
+    ],
+  },
+
+  // ─── APA ITU ETL ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(etl|elt|data\s*pipeline|pipeline\s*data)/i,
+      /jelaskan\s*(tentang\s*)?(etl|elt|data\s*pipeline)/i,
+      /etl\s*(itu\s*apa|adalah|artinya)/i,
+    ],
+    responses: [
+      'ETL (Extract, Transform, Load) adalah proses memindahkan data dari source ke destination:\n📤 Extract — ambil data dari sumber (DB, API, file)\n🔄 Transform — bersihkan, format, agregasi\n📥 Load — simpan ke data warehouse/lake\n\nTools: Apache Airflow, dbt, Talend, Fivetran 🔧',
+      'ETL vs ELT:\n• ETL (tradisional) → transform SEBELUM load ke warehouse\n• ELT (modern) → load dulu RAW, transform di dalam warehouse\n\nELT lebih populer sekarang karena cloud warehouse (BigQuery, Snowflake) sangat powerful untuk transform data besar! ☁️',
+    ],
+  },
+
+  // ─── APA ITU DATA WAREHOUSE ──────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(data\s*warehouse|gudang\s*data|snowflake|bigquery|redshift)/i,
+      /jelaskan\s*(tentang\s*)?data\s*warehouse/i,
+      /data\s*warehouse\s*(itu\s*apa|adalah|artinya|vs\s*database)/i,
+      /bedanya\s*data\s*warehouse\s*(dan|vs|dengan)\s*database/i,
+    ],
+    responses: [
+      'Data Warehouse adalah sistem penyimpanan data yang dioptimasi untuk analitik dan pelaporan — bukan untuk operasional transaksi harian. 🏛️\n\nBerbeda dengan database biasa (OLTP), Data Warehouse (OLAP) didesain untuk query besar, aggregasi, dan historical analysis.',
+      'OLTP vs OLAP:\n⚡ OLTP (Database) → transaksi cepat, data terkini, banyak write\n📊 OLAP (Warehouse) → query analitik, data historis, banyak read\n\nPopuler: BigQuery (Google), Snowflake, Amazon Redshift\nQuery ribuan juta baris dalam detik! 🚀',
+    ],
+  },
+
+  // ─── APA ITU KORELASI ────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(korelasi|correlation)/i,
+      /jelaskan\s*(tentang\s*)?korelasi/i,
+      /korelasi\s*(itu\s*apa|adalah|artinya)/i,
+      /korelasi\s*(vs|dan)\s*kausalitas/i,
+    ],
+    responses: [
+      'Korelasi mengukur seberapa kuat hubungan antara dua variabel. Nilai -1 hingga +1:\n• r = +1 → korelasi positif sempurna (naik bersama)\n• r = 0 → tidak ada hubungan linear\n• r = -1 → korelasi negatif sempurna (berlawanan)\n\nContoh: es krim terjual vs suhu udara → korelasi positif! 🍦☀️',
+      '⚠️ Korelasi ≠ Kausalitas!\n\nFun example: Konsumsi es krim berkorelasi dengan tenggelam — tapi bukan berarti es krim menyebabkan orang tenggelam! (keduanya tinggi di musim panas)\n\nSelalu cari penjelasan kausal yang logis sebelum mengambil kesimpulan dari korelasi! 🔬',
+    ],
+  },
+
+  // ─── APA ITU REGRESI ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(regresi|regression)(?!\s*logistik)/i,
+      /jelaskan\s*(tentang\s*)?regresi\s*linear/i,
+      /regresi\s*(itu\s*apa|adalah|artinya|linear)/i,
+    ],
+    responses: [
+      'Regresi Linear adalah algoritma ML untuk memprediksi nilai numerik kontinu berdasarkan satu atau lebih variabel input. 📈\n\nContoh: prediksi harga rumah berdasarkan luas, lokasi, jumlah kamar.\n\nFormula dasar: y = mx + b (garis terbaik yang fit data!)',
+      'Jenis regresi:\n📏 Simple Linear Regression — 1 variabel independen\n📐 Multiple Linear Regression — banyak variabel independen\n📊 Polynomial Regression — hubungan non-linear\n🔢 Ridge/Lasso Regression — dengan regularisasi\n✅ Logistic Regression — untuk klasifikasi (bukan regresi!)',
+    ],
+  },
+
+  // ─── APA ITU VISUALISASI DATA ────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(visualisasi\s*data|data\s*visualization)/i,
+      /jelaskan\s*(tentang\s*)?visualisasi\s*data/i,
+      /visualisasi\s*data\s*(itu\s*apa|adalah|artinya|penting)/i,
+      /kenapa\s*visualisasi\s*data\s*(penting|perlu)/i,
+    ],
+    responses: [
+      'Visualisasi data adalah representasi grafis dari data untuk membantu manusia memahami pola, tren, dan insight lebih mudah dari angka mentah. 📊\n\n"A picture is worth a thousand words" — berlaku juga untuk data!',
+      'Memilih jenis chart yang tepat:\n📈 Line chart → tren waktu\n📊 Bar chart → perbandingan kategori\n🔵 Scatter plot → hubungan 2 variabel\n🥧 Pie chart → proporsi (max 5 kategori!)\n📦 Box plot → distribusi & outlier\n🔥 Heatmap → korelasi atau matrix\n📉 Histogram → distribusi satu variabel 🎨',
+    ],
+  },
+
+  // ─── APA ITU OUTLIER ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*(itu|yang\s*dimaksud|arti|definisi|pengertian)\s*(outlier|pencilan|anomali)/i,
+      /jelaskan\s*(tentang\s*)?(outlier|pencilan)/i,
+      /outlier\s*(itu\s*apa|adalah|artinya|cara\s*deteksi|cara\s*handle)/i,
+      /cara\s*(deteksi|handle|tangani)\s*outlier/i,
+    ],
+    responses: [
+      'Outlier adalah titik data yang sangat berbeda dari sebagian besar data lainnya. Bisa karena kesalahan pengukuran, atau memang kejadian langka yang nyata. 🔴\n\nContoh: gaji rata-rata karyawan 5 juta, tapi CEO bergaji 1 miliar → outlier!',
+      'Cara deteksi outlier:\n• Z-score > 3 atau < -3\n• IQR method: nilai < Q1-1.5×IQR atau > Q3+1.5×IQR\n• Visualisasi boxplot\n• DBSCAN clustering (label -1 = outlier)\n\nCara handle:\n🗑️ Drop (kalau noise/error)\n✂️ Cap/winsorize\n🔄 Transform (log)\n🤖 Pakai algoritma robust (Median, MAD) ⚠️',
+    ],
+  },
+
+  // ─── PERBANDINGAN UMUM DS TOOLS ──────────────────────────────────────────
+  {
+    patterns: [
+      /python\s*(vs|atau|dibanding)\s*r\b/i,
+      /r\s*(vs|atau|dibanding)\s*python\b.*data/i,
+      /pilih\s*(python|r\b)\s*(untuk|buat)\s*data/i,
+    ],
+    responses: [
+      'Python vs R untuk Data Science:\n🐍 Python → lebih serbaguna, bisa web dev & ML production, komunitas besar, lebih mudah dipelajari\n📊 R → lebih kuat untuk statistika akademik & visualisasi (ggplot2), banyak dipakai di riset & bioinformatika\n\nRekomendasi: mulai Python kalau mau karir industri! 🏆',
+    ],
+  },
+  {
+    patterns: [
+      /tableau\s*(vs|atau|dibanding)\s*power\s*bi/i,
+      /power\s*bi\s*(vs|atau|dibanding)\s*tableau/i,
+      /pilih\s*(tableau|power\s*bi)/i,
+    ],
+    responses: [
+      'Tableau vs Power BI:\n📊 Tableau → visualisasi lebih fleksibel & powerful, lebih mahal, banyak dipakai di enterprise besar\n📊 Power BI → terintegrasi dengan Microsoft ecosystem, lebih terjangkau, DAX untuk kalkulasi advanced\n\nKeduanya punya versi free untuk belajar. Coba keduanya! ⚖️',
+    ],
+  },
+
+  // ─── PERTANYAAN UMUM DS ───────────────────────────────────────────────────
+  {
+    patterns: [
+      /bagaimana\s*(cara|langkah|tahapan|proses)\s*(belajar|mulai|memulai)\s*(data\s*science|data\s*anal|machine\s*learning)/i,
+      /mulai\s*(dari\s*mana|darimana|dari\s*mana)\s*(data\s*science|data\s*anal|ml\b)/i,
+      /mau\s*(belajar|mulai)\s*(data\s*science|data\s*anal)/i,
+    ],
+    responses: [
+      'Roadmap belajar Data Science dari nol:\n\n🌱 Tahap 1 — Fondasi (1-2 bulan):\n• Matematika: aljabar linear, kalkulus dasar, probabilitas\n• Statistika deskriptif & inferensial\n• Python dasar (variabel, loop, fungsi, OOP)\n\n🌿 Tahap 2 — Data Manipulation (1-2 bulan):\n• Pandas & NumPy\n• SQL (sangat penting!)\n• Matplotlib & Seaborn\n\n🌳 Tahap 3 — Machine Learning (2-3 bulan):\n• Scikit-learn\n• Algoritma klasifikasi, regresi, clustering\n• Evaluasi model\n\n🏔️ Tahap 4 — Spesialisasi:\n• Deep Learning (TF/PyTorch)\n• NLP atau Computer Vision\n• Big Data (Spark) 🚀',
+      'Quick start Data Science:\n1. Pelajari Python dasar (2 minggu)\n2. Pandas & visualisasi (1 bulan)\n3. Buat proyek EDA dari dataset Kaggle (terus-terusan!)\n4. Scikit-learn untuk ML dasar (1 bulan)\n5. Upload ke GitHub, tulis blog\n6. Apply kerja atau kompetisi Kaggle! 💪',
+    ],
+  },
+
+  // ─── PERBEDAAN DATA ROLES ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /perbedaan\s*(data\s*scientist|data\s*analyst|data\s*engineer)/i,
+      /bedanya\s*(data\s*scientist|data\s*analyst|data\s*engineer)/i,
+      /(data\s*scientist|data\s*analyst|data\s*engineer)\s*(vs|atau|dibanding|beda)/i,
+    ],
+    responses: [
+      'Perbedaan role data:\n\n📊 Data Analyst\n→ Fokus: "Apa yang terjadi?"\n→ Tools: SQL, Excel, Power BI/Tableau\n→ Output: laporan, dashboard, insight\n\n🤖 Data Scientist\n→ Fokus: "Apa yang akan terjadi?"\n→ Tools: Python, ML, statistika\n→ Output: model prediktif, eksperimen\n\n🏗️ Data Engineer\n→ Fokus: "Bagaimana data sampai ke sana?"\n→ Tools: Spark, Airflow, dbt, cloud\n→ Output: pipeline, data warehouse\n\n🧠 ML Engineer\n→ Fokus: "Bagaimana model berjalan di production?"\n→ Tools: MLOps, Docker, APIs\n→ Output: deployed model, monitoring 💼',
+    ],
+  },
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ██████████████   GELOMBANG 3 — MASSIVE EXPANSION   ████████████████████████
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // ══════════════════════  WEB DEVELOPMENT LANJUTAN  ═══════════════════════════
+
+  // ─── NEXT.JS ─────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\bnext\.?js\b/i,
+      /apa\s*itu\s*next\.?js/i,
+      /next\.?js\s*(itu\s*apa|adalah|vs\s*react|keunggulan)/i,
+      /\b(ssr|ssg|isr|server\s*side\s*rendering|static\s*site\s*generation)\b/i,
+    ],
+    responses: [
+      'Next.js adalah React framework dengan fitur tambahan: SSR, SSG, file-based routing, API routes, dan optimasi built-in. Production-ready dari hari pertama! ⚡',
+      'SSR vs SSG vs ISR di Next.js:\n🖥️ SSR (getServerSideProps) — render di server tiap request\n📄 SSG (getStaticProps) — render saat build, super cepat\n🔄 ISR (revalidate) — SSG yang bisa diupdate berkala\n🎯 CSR — render di browser (React biasa)',
+      'Next.js 13+ App Router adalah masa depan Next.js! Gunakan Server Components untuk performa maksimal, Client Components hanya saat butuh interaktivitas. 🚀',
+      'Struktur folder Next.js App Router:\n```\napp/\n  layout.tsx    → root layout\n  page.tsx      → halaman utama\n  loading.tsx   → loading UI\n  error.tsx     → error boundary\n  api/route.ts  → API endpoint\n```',
+    ],
+  },
+
+  // ─── VUE.JS ──────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\bvue\.?js\b|\bvuejs\b/i,
+      /apa\s*itu\s*vue/i,
+      /vue\s*(vs\s*react|itu\s*apa|adalah)/i,
+      /\b(nuxt|pinia|vuex|vue\s*router)\b/i,
+    ],
+    responses: [
+      'Vue.js adalah JavaScript framework progresif — bisa dipakai sebagian kecil atau full SPA. Kurva belajar lebih landai dari React! 💚',
+      'Vue.js vs React:\n💚 Vue → template syntax lebih familiar (mirip HTML), two-way binding, opinionated\n⚛️ React → JSX, one-way data flow, ekosistem lebih besar\n\nKeduanya excellent — pilih sesuai preferensi tim!',
+      'Vue 3 Composition API sangat mirip React Hooks. Nuxt.js = Next.js-nya Vue. Pinia = state manager modern Vue 3. 🔧',
+    ],
+  },
+
+  // ─── SVELTE ──────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\bsvelte\b|\bsveltekit\b/i,
+      /apa\s*itu\s*svelte/i,
+      /svelte\s*(vs\s*react|itu\s*apa|adalah)/i,
+    ],
+    responses: [
+      'Svelte adalah framework yang berbeda — tidak ada Virtual DOM! Svelte compile ke vanilla JS saat build, hasil akhirnya sangat kecil dan cepat. 🚀',
+      'Svelte keunggulan:\n✅ Bundle size sangat kecil\n✅ Sintaks paling simpel\n✅ Reaktivitas built-in (tidak butuh useState)\n✅ Performa excellent\n\nSvelteKit = Next.js-nya Svelte. Worth learning! ⚡',
+    ],
+  },
+
+  // ─── STATE MANAGEMENT ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(state\s*management|redux|zustand|jotai|recoil|context\s*api|global\s*state)\b/i,
+      /apa\s*itu\s*(redux|zustand|state\s*management)/i,
+      /kapan\s*(pakai|gunakan)\s*(redux|zustand|context)/i,
+    ],
+    responses: [
+      'State management pilihan 2024:\n🏆 Zustand — simpel, ringan, tidak boilerplate (rekomendasi!)\n⚛️ Redux Toolkit — powerful, DevTools bagus, cocok project besar\n🔮 Jotai — atomic, sangat fleksibel\n🌊 Recoil — dari Facebook, atom-based\n📦 Context API — built-in React, cocok state sederhana',
+      'Kapan butuh state manager?\n✅ State diakses banyak komponen yang tidak berhubungan langsung\n✅ State kompleks dengan banyak aksi\n✅ Butuh time-travel debugging\n\n❌ Jangan over-engineer! useState + props sudah cukup untuk banyak kasus. 🎯',
+      'Zustand quickstart (paling direkomendasikan):\n```ts\nimport { create } from "zustand"\n\nconst useStore = create((set) => ({\n  count: 0,\n  increment: () => set((s) => ({ count: s.count + 1 })),\n  reset: () => set({ count: 0 }),\n}))\n\n// Di komponen:\nconst { count, increment } = useStore()\n```',
+    ],
+  },
+
+  // ─── WEBSOCKET & REALTIME ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(websocket|socket\.?io|realtime|real.time|sse|server.sent\s*event)\b/i,
+      /apa\s*itu\s*(websocket|socket\.io)/i,
+      /\b(chat\s*app|live\s*update|push\s*notification)\b/i,
+    ],
+    responses: [
+      'WebSocket memungkinkan komunikasi dua arah real-time antara browser dan server — berbeda dari HTTP yang one-direction! 🔌\n\nAplikasi: chat app, live dashboard, collaborative editing, game multiplayer, notifikasi real-time.',
+      'WebSocket vs HTTP:\n📡 HTTP → request-response, client harus polling\n🔌 WebSocket → full-duplex, koneksi persistent, server bisa push data kapan saja\n📨 SSE → server push saja (satu arah), lebih sederhana dari WS\n\nSocket.io = library WS dengan fallback dan room management! 🚀',
+      'Socket.io quickstart:\n```js\n// Server (Node.js)\nconst io = require("socket.io")(server)\nio.on("connection", (socket) => {\n  socket.on("message", (data) => {\n    io.emit("message", data) // broadcast ke semua\n  })\n})\n\n// Client\nconst socket = io()\nsocket.emit("message", "Hello!")\nsocket.on("message", (data) => console.log(data))\n```',
+    ],
+  },
+
+  // ─── PWA ─────────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(pwa|progressive\s*web\s*app|service\s*worker|manifest\.json|offline\s*app|installable)\b/i,
+      /apa\s*itu\s*pwa/i,
+      /buat\s*(app|aplikasi)\s*(offline|installable)/i,
+    ],
+    responses: [
+      'PWA (Progressive Web App) adalah web app yang bisa diinstall di device seperti native app, berjalan offline, dan dapat push notification! 📱\n\nTiga pilar PWA: HTTPS + Service Worker + Web App Manifest.',
+      'Vite + PWA setup:\n```bash\nnpm install vite-plugin-pwa\n```\n```ts\n// vite.config.ts\nimport { VitePWA } from "vite-plugin-pwa"\nexport default defineConfig({\n  plugins: [VitePWA({\n    registerType: "autoUpdate",\n    manifest: {\n      name: "FutureStack",\n      short_name: "FutureStack",\n      theme_color: "#000000",\n    }\n  })]\n})\n```',
+    ],
+  },
+
+  // ─── GRAPHQL ─────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(graphql|apollo|relay|gql\b|query\s*graphql|mutation\s*graphql)\b/i,
+      /apa\s*itu\s*graphql/i,
+      /graphql\s*(vs\s*rest|itu\s*apa|adalah)/i,
+    ],
+    responses: [
+      'GraphQL adalah query language untuk API — berbeda dari REST, client menentukan sendiri data apa yang dibutuhkan. Tidak ada over-fetching atau under-fetching! 🎯',
+      'GraphQL vs REST:\n📡 REST → multiple endpoints, fixed response structure\n🔮 GraphQL → single endpoint (/graphql), client-driven data fetching\n\nKapan pakai GraphQL:\n✅ Data kompleks dan berhubungan\n✅ Banyak tipe client (web, mobile)\n✅ Tim frontend butuh fleksibilitas\n❌ Overkill untuk CRUD sederhana!',
+    ],
+  },
+
+  // ─── MICROSERVICES ────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(microservice|micro\s*service|monolith|monolithic|api\s*gateway|service\s*mesh)\b/i,
+      /apa\s*itu\s*microservice/i,
+      /microservice\s*(vs\s*monolith|itu\s*apa|adalah)/i,
+    ],
+    responses: [
+      'Microservices vs Monolith:\n🏛️ Monolith → satu codebase besar, simple awalnya, makin susah scale\n🔬 Microservices → banyak service kecil independen, complex tapi scalable\n\n"Start with monolith, extract microservices when needed." — Martin Fowler 🎯',
+      'Microservices keuntungan:\n✅ Scale service tertentu saja\n✅ Deploy independent\n✅ Tech stack berbeda per service\n\nKerugian:\n❌ Kompleksitas operasional tinggi\n❌ Network latency antar service\n❌ Debugging lebih susah\n\nJangan pakai microservices kalau belum butuh! ⚠️',
+    ],
+  },
+
+  // ─── LINUX & TERMINAL ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(linux|terminal|bash|shell|command\s*line|cli\b|unix|zsh|chmod|ssh\b|grep\b|curl\b|wget\b)\b/i,
+      /perintah\s*(linux|terminal|bash)/i,
+      /cara\s*(pakai|belajar)\s*(linux|terminal)/i,
+    ],
+    responses: [
+      'Perintah Linux wajib developer:\n📁 `ls -la` — list file + hidden\n📂 `cd`, `mkdir`, `rm -rf`\n📄 `cat`, `nano`, `vim`\n🔍 `grep -r "text" .` — cari teks dalam file\n⚡ `chmod +x file` — beri izin eksekusi\n🌐 `curl -X GET url` — HTTP request\n🔗 `ssh user@server` — remote login',
+      'Terminal tips produktivitas:\n• `Ctrl+R` — search history command\n• `!!` — ulangi command terakhir\n• `&&` — jalankan command berantai\n• `|` (pipe) — output jadi input command berikutnya\n• `alias ll="ls -la"` — buat shortcut command\n• `tmux` atau `screen` — sesi terminal multipel! 🖥️',
+      'Bash script dasar:\n```bash\n#!/bin/bash\n# Deploy script\necho "Building..."\nnpm run build\necho "Deploying..."\ngit add .\ngit commit -m "deploy: $(date)"\ngit push\necho "Done! ✅"\n```',
+    ],
+  },
+
+  // ─── CI/CD ────────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(ci\/cd|cicd|continuous\s*(integration|deployment|delivery)|github\s*actions|gitlab\s*ci|jenkins|pipeline\s*ci)\b/i,
+      /apa\s*itu\s*(ci\/cd|cicd|github\s*actions)/i,
+      /otomatis\s*(deploy|test|build)/i,
+    ],
+    responses: [
+      'CI/CD:\n🔄 CI (Continuous Integration) — otomatis test & build setiap push\n🚀 CD (Continuous Deployment) — otomatis deploy ke production\n\nManfaat: bug terdeteksi lebih awal, deploy lebih sering & aman, kurangi manual error! 🎯',
+      'GitHub Actions workflow lengkap:\n```yaml\nname: CI/CD Pipeline\non: [push]\njobs:\n  test-and-deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - uses: actions/setup-node@v3\n        with:\n          node-version: 18\n          cache: npm\n      - run: npm ci\n      - run: npm test\n      - run: npm run build\n      - name: Deploy\n        if: github.ref == "refs/heads/main"\n        run: npm run deploy\n```',
+    ],
+  },
+
+  // ─── MONOREPO ─────────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(monorepo|turbo\s*repo|nx\b|lerna|workspace\s*npm|pnpm\s*workspace)\b/i,
+      /apa\s*itu\s*monorepo/i,
+      /monorepo\s*(itu\s*apa|adalah|vs\s*polyrepo)/i,
+    ],
+    responses: [
+      'Monorepo = satu repository berisi banyak package/app. Kebalikannya polyrepo (satu repo per project).\n\nContoh: Vercel, Google, Meta pakai monorepo untuk ratusan package! 📦',
+      'Tools monorepo populer:\n⚡ Turborepo — caching build cerdas, super cepat\n🔧 Nx — feature lengkap, cocok enterprise\n📦 pnpm workspaces — simpel dan ringan\n\nKapan pakai monorepo: shared component library, frontend + backend di satu repo, banyak app yang saling berbagi kode! 🔗',
+    ],
+  },
+
+  // ══════════════════════  BACKEND & SERVER  ═══════════════════════════════════
+
+  // ─── NODE.JS BACKEND ──────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(express\.?js|express\s*js|fastify|hono\b|koa\b|nestjs|nest\.js)\b/i,
+      /\bbackend\s*(node|javascript|typescript)\b/i,
+      /apa\s*itu\s*(express|nestjs|fastify)/i,
+    ],
+    responses: [
+      'Node.js backend frameworks:\n⚡ Express.js — paling populer, minimal, fleksibel\n🚀 Fastify — 2x lebih cepat dari Express, schema validation\n🏗️ NestJS — opinionated, TypeScript-first, cocok enterprise\n🔥 Hono — ultra lightweight, edge-ready\n\nRekomendasi 2024: Fastify atau Hono untuk performa! 💪',
+      'Express.js REST API dasar:\n```js\nconst express = require("express")\nconst app = express()\napp.use(express.json())\n\napp.get("/api/users", (req, res) => {\n  res.json({ users: [] })\n})\n\napp.post("/api/users", (req, res) => {\n  const { name, email } = req.body\n  // simpan ke database\n  res.status(201).json({ message: "Created" })\n})\n\napp.listen(3000, () => console.log("Server running! 🚀"))\n```',
+    ],
+  },
+
+  // ─── PRISMA ORM ───────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(prisma\b|drizzle\b|orm\b|type\s*orm|sequelize)\b/i,
+      /apa\s*itu\s*(prisma|orm\b|drizzle)/i,
+      /database\s*(dengan|pakai)\s*(prisma|orm)/i,
+    ],
+    responses: [
+      'Prisma adalah ORM TypeScript-first yang paling populer untuk Node.js. Type-safe queries, auto-migration, dan Prisma Studio! 🔧\n```bash\nnpm install prisma @prisma/client\nnpx prisma init\nnpx prisma migrate dev\n```',
+      'Prisma schema contoh:\n```prisma\nmodel User {\n  id        Int      @id @default(autoincrement())\n  email     String   @unique\n  name      String?\n  posts     Post[]\n  createdAt DateTime @default(now())\n}\n\nmodel Post {\n  id       Int    @id @default(autoincrement())\n  title    String\n  content  String?\n  author   User   @relation(fields: [authorId], references: [id])\n  authorId Int\n}\n```',
+      'Prisma vs Drizzle 2024:\n🔷 Prisma → lebih mature, lebih mudah, Prisma Studio GUI\n🔶 Drizzle → lebih ringan, SQL-like syntax, lebih cepat, zero dependency\n\nKeduanya type-safe. Drizzle trending naik! 📈',
+    ],
+  },
+
+  // ─── REST API BEST PRACTICE ───────────────────────────────────────────────
+  {
+    patterns: [
+      /\brest\s*api\s*(best\s*practice|standar|yang\s*baik|design)\b/i,
+      /\bapi\s*design\b/i,
+      /cara\s*(buat|design|rancang)\s*api\s*(yang\s*baik|rest)/i,
+      /\b(http\s*status\s*code|status\s*code\s*api|200|201|400|401|403|404|500)\b/i,
+    ],
+    responses: [
+      'HTTP Status Code yang benar:\n✅ 200 OK — sukses GET/PUT\n✅ 201 Created — sukses POST (data baru)\n✅ 204 No Content — sukses DELETE\n❌ 400 Bad Request — input user salah\n❌ 401 Unauthorized — belum login\n❌ 403 Forbidden — tidak punya akses\n❌ 404 Not Found — resource tidak ada\n💥 500 Internal Server Error — bug di server',
+      'REST API naming conventions:\n✅ `/api/v1/users` — plural noun\n✅ `/api/v1/users/123` — resource by ID\n✅ `/api/v1/users/123/posts` — nested resource\n❌ `/api/v1/getUsers` — jangan pakai verb!\n❌ `/api/v1/user` — jangan singular!\n\nGunakan HTTP verb (GET/POST/PUT/PATCH/DELETE) sebagai "kata kerja"! 🎯',
+      'API versioning penting! Selalu prefix dengan `/v1/`, `/v2/` agar tidak breaking change untuk client lama. Rate limiting & pagination juga wajib di production! 🔒',
+    ],
+  },
+
+  // ─── AUTHENTICATION JWT ───────────────────────────────────────────────────
+  {
+    patterns: [
+      /\bimplementasi\s*(jwt|auth|autentikasi)\b/i,
+      /cara\s*(buat|implement|pasang)\s*(jwt|login\s*system|autentikasi)/i,
+      /\b(refresh\s*token|access\s*token|bearer\s*token)\b/i,
+    ],
+    responses: [
+      'JWT Auth flow yang benar:\n1️⃣ User login → server validasi → buat access token (15 menit) + refresh token (7 hari)\n2️⃣ Client simpan access token di memory, refresh token di httpOnly cookie\n3️⃣ Setiap request: kirim access token di Authorization header\n4️⃣ Access token expired → gunakan refresh token untuk dapat yang baru\n5️⃣ Logout → hapus refresh token dari database + clear cookie 🔐',
+      'JWT implementation Node.js:\n```js\nconst jwt = require("jsonwebtoken")\n\n// Generate token\nconst accessToken = jwt.sign(\n  { userId: user.id, role: user.role },\n  process.env.JWT_SECRET,\n  { expiresIn: "15m" }\n)\n\n// Verify token (middleware)\nconst verifyToken = (req, res, next) => {\n  const token = req.headers.authorization?.split(" ")[1]\n  if (!token) return res.status(401).json({ error: "Unauthorized" })\n  try {\n    req.user = jwt.verify(token, process.env.JWT_SECRET)\n    next()\n  } catch {\n    res.status(401).json({ error: "Token invalid/expired" })\n  }\n}\n```',
+    ],
+  },
+
+  // ══════════════════════  DATA SCIENCE LANJUTAN  ══════════════════════════════
+
+  // ─── APA ITU NEURAL NETWORK ───────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(neural\s*network|jaringan\s*saraf\s*tiruan|ann\b|jst\b)/i,
+      /jelaskan\s*(tentang\s*)?(neural\s*network|jaringan\s*saraf)/i,
+      /neural\s*network\s*(cara\s*kerja|itu\s*apa|adalah)/i,
+      /cara\s*kerja\s*neural\s*network/i,
+    ],
+    responses: [
+      'Neural Network adalah model ML yang terinspirasi dari otak manusia. Terdiri dari neuron buatan yang tersusun dalam lapisan (layers):\n\n🔵 Input Layer — menerima data\n🟡 Hidden Layer(s) — proses & transformasi\n🟢 Output Layer — hasil prediksi\n\nSetiap koneksi punya bobot (weight) yang dioptimasi saat training! 🧠',
+      'Cara kerja Neural Network sederhana:\n1️⃣ Forward pass: data → input → hidden → output (prediksi)\n2️⃣ Hitung error (loss function)\n3️⃣ Backward pass: hitung gradient setiap weight\n4️⃣ Update weight dengan gradient descent\n5️⃣ Ulangi ribuan kali hingga error kecil\n\nProses update weight = "belajar" dari data! 📈',
+    ],
+  },
+
+  // ─── APA ITU CNN ──────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(cnn\b|convolutional\s*neural|jaringan\s*konvolusi)/i,
+      /jelaskan\s*(tentang\s*)?(cnn\b|convolutional)/i,
+      /cnn\s*(itu\s*apa|adalah|cara\s*kerja|digunakan\s*untuk)/i,
+      /\b(image\s*classification|object\s*detection|computer\s*vision)\s*(itu\s*apa|adalah)/i,
+    ],
+    responses: [
+      'CNN (Convolutional Neural Network) adalah arsitektur deep learning khusus untuk data visual (gambar & video). 🖼️\n\nIde utama: scan gambar dengan filter kecil (kernel) untuk mendeteksi fitur — mulai dari tepi sederhana hingga wajah yang kompleks!',
+      'Lapisan CNN:\n🔍 Conv Layer — deteksi fitur dengan filter\n📉 Pooling Layer — kurangi dimensi, pertahankan fitur penting\n🔗 Flatten — ubah ke 1D\n🧠 Dense Layer — klasifikasi akhir\n\nAplikasi: face recognition, medical imaging, self-driving car, OCR! 🚗',
+    ],
+  },
+
+  // ─── APA ITU RNN / LSTM ───────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(rnn\b|lstm\b|gru\b|recurrent\s*neural)/i,
+      /jelaskan\s*(tentang\s*)?(rnn\b|lstm\b|recurrent)/i,
+      /(rnn|lstm|gru)\s*(itu\s*apa|adalah|cara\s*kerja|digunakan\s*untuk)/i,
+    ],
+    responses: [
+      'RNN (Recurrent Neural Network) didesain untuk data sekuensial — teks, time series, audio. Punya "memori" dari input sebelumnya! 🔄\n\nMasalah RNN: vanishing gradient untuk sekuens panjang.\nSolusi: LSTM dan GRU yang punya mekanisme "gerbang" untuk kontrol memori.',
+      'LSTM (Long Short-Term Memory):\n🚪 Forget Gate — putuskan info mana yang dilupakan\n🚪 Input Gate — info baru mana yang disimpan\n🚪 Output Gate — info mana yang dikeluarkan\n\nSangat baik untuk: prediksi teks, speech recognition, machine translation, time series forecasting! 📝',
+    ],
+  },
+
+  // ─── APA ITU TRANSFORMER ──────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(transformer\s*model|attention\s*mechanism|self.attention)/i,
+      /jelaskan\s*(tentang\s*)?(transformer|attention\s*mechanism)/i,
+      /transformer\s*(itu\s*apa|adalah|cara\s*kerja)/i,
+      /kenapa\s*(bert|gpt|transformer)\s*(bagus|powerful|canggih)/i,
+    ],
+    responses: [
+      'Transformer adalah arsitektur revolusioner (2017, "Attention is All You Need") yang menggantikan RNN untuk NLP. Kunci utamanya: Attention Mechanism! 🤖\n\nBerbeda RNN yang proses sekuensial, Transformer proses semua token secara paralel → jauh lebih cepat!',
+      'Self-Attention memungkinkan model fokus ke bagian teks yang relevan saat memproses setiap kata. Contoh:\n\n"Bank [sungai] mengalir deras" vs "Saldo [bank] habis"\n→ Transformer tahu "bank" bermakna berbeda berdasarkan konteks sekitar! 🧠\n\nDari Transformer lahir: BERT, GPT, T5, LLaMA, Claude, dan semua LLM modern!',
+    ],
+  },
+
+  // ─── APA ITU BERT & GPT ───────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(bert\b|gpt\b|llm\b|large\s*language\s*model)/i,
+      /jelaskan\s*(tentang\s*)?(bert\b|gpt\b|llm\b)/i,
+      /(bert|gpt|llm)\s*(itu\s*apa|adalah|cara\s*kerja|perbedaan)/i,
+      /bedanya\s*(bert|gpt)/i,
+    ],
+    responses: [
+      'BERT vs GPT:\n🔵 BERT (Google, 2018) → encoder-only, dilatih dengan masked language modeling, bagus untuk klasifikasi & NER\n🟢 GPT (OpenAI) → decoder-only, dilatih untuk predict next token, bagus untuk generate teks\n\nBERT "memahami" teks, GPT "menghasilkan" teks! 🤖',
+      'LLM (Large Language Model) adalah model bahasa skala besar yang dilatih dengan data teks masif. Contoh: GPT-4, Claude, Gemini, LLaMA.\n\nCara kerja sederhana: prediksi token berikutnya berulang-ulang. Tapi dengan miliaran parameter → bisa "mengerti" dan "bernalar"! 🧠',
+    ],
+  },
+
+  // ─── APA ITU RAG ──────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(rag\b|retrieval.augmented|vector\s*database|embedding\s*vector)/i,
+      /jelaskan\s*(tentang\s*)?(rag\b|retrieval\s*augmented|vector\s*db)/i,
+      /(rag|vector\s*database)\s*(itu\s*apa|adalah|cara\s*kerja)/i,
+    ],
+    responses: [
+      'RAG (Retrieval-Augmented Generation) adalah teknik menggabungkan LLM dengan knowledge base eksternal:\n1️⃣ Dokumen di-embed ke vector\n2️⃣ Pertanyaan user di-embed\n3️⃣ Cari dokumen paling relevan (similarity search)\n4️⃣ Kirim dokumen + pertanyaan ke LLM\n5️⃣ LLM jawab berdasarkan konteks itu\n\nHasil: LLM yang bisa akses data up-to-date & private! 🔍',
+      'Vector Database untuk RAG:\n• Pinecone — managed, production-ready\n• Weaviate — open source, powerful\n• Chroma — local dev, mudah dipakai\n• pgvector — ekstensi PostgreSQL\n\n```python\nfrom langchain.embeddings import OpenAIEmbeddings\nfrom langchain.vectorstores import Chroma\n\ndb = Chroma.from_documents(docs, OpenAIEmbeddings())\nresults = db.similarity_search("pertanyaan", k=3)\n```',
+    ],
+  },
+
+  // ─── APA ITU COMPUTER VISION ──────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(computer\s*vision|visi\s*komputer|image\s*processing)/i,
+      /jelaskan\s*(tentang\s*)?(computer\s*vision|image\s*processing)/i,
+      /\b(opencv|yolo\b|object\s*detection|image\s*segmentation)\s*(itu\s*apa|adalah)/i,
+    ],
+    responses: [
+      'Computer Vision adalah bidang AI yang memungkinkan komputer "melihat" dan memahami gambar/video. 👁️\n\nAplikasi:\n🚗 Self-driving car\n🏥 Deteksi kanker dari MRI/X-ray\n😊 Face recognition\n🛒 Checkout tanpa kasir (Amazon Go)\n🔍 Quality control di manufaktur',
+      'OpenCV untuk Computer Vision Python:\n```python\nimport cv2\nimport numpy as np\n\nimg = cv2.imread("foto.jpg")\ngray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)\nblur = cv2.GaussianBlur(gray, (5,5), 0)\nedges = cv2.Canny(blur, 50, 150)\n\n# Deteksi wajah\nface_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")\nfaces = face_cascade.detectMultiScale(gray, 1.1, 4)\n```',
+    ],
+  },
+
+  // ─── APA ITU DATA LAKE ────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(data\s*lake|data\s*lakehouse|delta\s*lake)/i,
+      /jelaskan\s*(tentang\s*)?(data\s*lake|lakehouse)/i,
+      /(data\s*lake|lakehouse)\s*(itu\s*apa|adalah|vs\s*warehouse)/i,
+    ],
+    responses: [
+      'Data Lake adalah storage repository yang menyimpan data dalam format RAW (raw) — terstruktur, semi-terstruktur, dan tidak terstruktur. 🏞️\n\nPerbedaan dengan Data Warehouse:\n🏛️ Warehouse → structured, schema-on-write, mahal\n🏞️ Lake → semua format, schema-on-read, murah (S3/GCS)',
+      'Lakehouse = terbaik dari Data Lake + Data Warehouse. Konsep modern yang diimplementasikan oleh Databricks Delta Lake, Apache Iceberg, dan Apache Hudi.\n\n✅ ACID transactions di atas object storage\n✅ Schema enforcement + evolution\n✅ Time travel (lihat data di masa lalu!)\n✅ Bisa untuk BI dan ML sekaligus 🚀',
+    ],
+  },
+
+  // ─── APA ITU MLOPS ────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /apa\s*itu\s*(mlops|ml\s*ops|model\s*deployment|model\s*monitoring)/i,
+      /jelaskan\s*(tentang\s*)?mlops/i,
+      /mlops\s*(itu\s*apa|adalah|tools|pipeline)/i,
+      /\b(model\s*drift|data\s*drift|model\s*monitoring\s*production)\b/i,
+    ],
+    responses: [
+      'MLOps = DevOps untuk Machine Learning. Praktik dan tools untuk deploy, monitor, dan maintain model ML di production secara reliable. 🤖⚙️\n\nTantangan tanpa MLOps: "Model bagus di notebook, disaster di production!"',
+      'MLOps pipeline:\n📦 Data versioning (DVC)\n🧪 Experiment tracking (MLflow, W&B)\n🔄 CI/CD untuk model\n🚀 Model serving (FastAPI, Seldon, BentoML)\n📊 Model monitoring (Evidently, Arize)\n🔀 A/B testing model\n\nModel drift = performa model menurun karena data dunia nyata berubah! Monitor selalu. 🔍',
+    ],
+  },
+
+  // ─── STATISTIKA — PROBABILITAS ────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(probabilitas|probability|peluang|bayes|bayesian|prior|posterior|conditional\s*probability)\b/i,
+      /apa\s*itu\s*(probabilitas|teorema\s*bayes|bayesian)/i,
+      /teorema\s*bayes/i,
+    ],
+    responses: [
+      'Probabilitas adalah ukuran kemungkinan suatu kejadian terjadi (0 = tidak mungkin, 1 = pasti). 🎲\n\nRumus dasar:\n• P(A ∪ B) = P(A) + P(B) - P(A ∩ B)\n• P(A ∩ B) = P(A) × P(B|A)\n• P(A|B) = P(B|A) × P(A) / P(B) ← Teorema Bayes!',
+      'Teorema Bayes sangat penting di data science:\n\nP(A|B) = P(B|A) × P(A) / P(B)\n\nArtinya: "Perbarui keyakinan kita berdasarkan bukti baru"\n\nAplikasi: spam filter, medical diagnosis, Naive Bayes classifier, A/B testing!\n\nFun example: test positif COVID, berapa kemungkinan benar-benar sakit? Butuh Bayes! 🔬',
+    ],
+  },
+
+  // ─── STATISTIKA — DISTRIBUSI ──────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(distribusi\s*normal|distribusi\s*binomial|distribusi\s*poisson|central\s*limit|hukum\s*bilangan\s*besar|gaussian\b)\b/i,
+      /apa\s*itu\s*(distribusi\s*normal|gaussian|central\s*limit)/i,
+      /distribusi\s*(normal|binomial|poisson)\s*(itu\s*apa|adalah)/i,
+    ],
+    responses: [
+      'Distribusi yang sering dipakai di data science:\n📊 Normal (Gaussian) — simetris, kurva lonceng. Paling umum di alam\n🎯 Binomial — sukses/gagal dalam n percobaan\n⏱️ Poisson — jumlah kejadian dalam interval waktu\n📈 Exponential — waktu antar kejadian\n🎰 Uniform — semua nilai sama sering',
+      'Central Limit Theorem (CLT) — teorema terpenting statistika!\n\n"Distribusi rata-rata sampel akan mendekati normal, apapun distribusi populasinya, jika ukuran sampel cukup besar (n ≥ 30)"\n\nIni mengapa banyak metode statistik parametrik bekerja dengan baik di praktik! 📐',
+    ],
+  },
+
+  // ─── PANDAS LANJUTAN ──────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(pivot\s*table\s*pandas|melt\s*pandas|stack\s*pandas|multiindex|resample\s*pandas|apply\s*lambda)\b/i,
+      /cara\s*(buat|pakai)\s*pivot\s*table\s*(pandas|python)/i,
+      /pandas\s*(lanjutan|advanced|tips\s*pandas)/i,
+    ],
+    responses: [
+      'Pandas Pivot Table:\n```python\n# Mirip pivot table Excel!\npivot = df.pivot_table(\n    values="revenue",\n    index="region",\n    columns="product_category",\n    aggfunc="sum",\n    fill_value=0\n)\n\n# Tambah margin (total)\npivot = df.pivot_table(\n    values="sales", index="month",\n    columns="category", aggfunc="sum",\n    margins=True, margins_name="Total"\n)\n```',
+      'Pandas tips lanjutan:\n```python\n# apply() dengan lambda\ndf["bmi"] = df.apply(lambda r: r["weight"]/(r["height"]**2), axis=1)\n\n# Melt — wide to long format\ndf_long = df.melt(id_vars=["id","name"], var_name="bulan", value_name="nilai")\n\n# Resample time series\ndf_monthly = df.set_index("date").resample("M").agg({"revenue":"sum","orders":"count"})\n\n# Rolling window\ndf["ma7"] = df["price"].rolling(window=7).mean()\ndf["std7"] = df["price"].rolling(window=7).std()\n```',
+    ],
+  },
+
+  // ─── SCIKIT-LEARN LANJUTAN ────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(pipeline\s*sklearn|column\s*transformer|imbalanced|smote|oversampling|undersampling|class\s*weight)\b/i,
+      /cara\s*handle\s*(imbalanced|class\s*imbalance|data\s*tidak\s*seimbang)/i,
+      /sklearn\s*(pipeline|lanjutan|advanced)/i,
+    ],
+    responses: [
+      'Scikit-learn Pipeline — hindari data leakage & bersihkan kode:\n```python\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.ensemble import RandomForestClassifier\n\nnum_features = ["age", "income"]\ncat_features = ["city", "category"]\n\npreprocessor = ColumnTransformer([\n    ("num", StandardScaler(), num_features),\n    ("cat", OneHotEncoder(handle_unknown="ignore"), cat_features)\n])\n\npipeline = Pipeline([\n    ("prep", preprocessor),\n    ("model", RandomForestClassifier(n_estimators=100))\n])\n\npipeline.fit(X_train, y_train)\ny_pred = pipeline.predict(X_test)  # preprocessing otomatis!\n```',
+      'Handle Class Imbalance:\n```python\nfrom imblearn.over_sampling import SMOTE\nfrom imblearn.under_sampling import RandomUnderSampler\n\n# SMOTE — generate sampel sintetis kelas minoritas\nsmote = SMOTE(random_state=42)\nX_res, y_res = smote.fit_resample(X_train, y_train)\n\n# Atau pakai class_weight di model\nmodel = RandomForestClassifier(class_weight="balanced")\n\n# Cek distribusi kelas\nprint(pd.Series(y).value_counts(normalize=True))\n```',
+    ],
+  },
+
+  // ─── DATA WRANGLING LANJUTAN ──────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(data\s*wrangling|data\s*munging|reshape\s*data|wide\s*to\s*long|long\s*to\s*wide|tidy\s*data)\b/i,
+      /cara\s*(reshape|ubah\s*format|transformasi)\s*data/i,
+      /data\s*wrangling\s*(itu\s*apa|adalah|tips)/i,
+    ],
+    responses: [
+      'Data Wrangling adalah proses membersihkan dan mengstrukturkan data agar siap dianalisis. Prinsip "Tidy Data":\n✅ Setiap variabel = satu kolom\n✅ Setiap observasi = satu baris\n✅ Setiap nilai = satu sel\n\n"Data wrangling takes 80% of time but gets 0% of the glory." 😅',
+      'Teknik reshape data:\n```python\n# Wide to Long (melt)\ndf_long = pd.melt(df, id_vars=["nama"], value_vars=["jan","feb","mar"],\n                  var_name="bulan", value_name="penjualan")\n\n# Long to Wide (pivot)\ndf_wide = df_long.pivot(index="nama", columns="bulan", values="penjualan")\n\n# Stack / Unstack MultiIndex\ndf.stack()    # kolom → baris (wide to long)\ndf.unstack()  # baris → kolom (long to wide)\n```',
+    ],
+  },
+
+  // ─── ANALISIS BISNIS & METRICS ────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(kpi\b|metrik\s*bisnis|business\s*metric|cohort\s*analysis|funnel\s*analysis|retention\s*rate|churn\s*rate|ltv\b|cac\b|arpu\b|dau|mau\b)\b/i,
+      /apa\s*itu\s*(churn|retention|ltv|cac|arpu|cohort)/i,
+      /cara\s*analisis\s*(churn|retention|funnel|cohort)/i,
+    ],
+    responses: [
+      'Business Metrics penting:\n📊 DAU/MAU — Daily/Monthly Active Users\n🔄 Retention Rate — % user yang kembali\n📉 Churn Rate — % user yang berhenti\n💰 ARPU — Average Revenue Per User\n📈 LTV — Lifetime Value pelanggan\n💸 CAC — Cost to Acquire Customer\n\nRatio sehat: LTV / CAC > 3 adalah benchmark yang baik! 🎯',
+      'Cohort Analysis — analisis kelompok user berdasarkan waktu join:\n```python\n# Hitung retention per cohort\ndf["cohort"] = df.groupby("user_id")["date"].transform("min").dt.to_period("M")\ndf["period"] = df["date"].dt.to_period("M")\ndf["period_number"] = (df["period"] - df["cohort"]).apply(lambda x: x.n)\n\ncohort_data = df.groupby(["cohort","period_number"])["user_id"].nunique().unstack()\ncohort_size = cohort_data.iloc[:, 0]\nretention = cohort_data.divide(cohort_size, axis=0)\n\nsns.heatmap(retention, annot=True, fmt=".0%", cmap="YlOrRd")\n```',
+      'Funnel Analysis — analisis konversi per tahap:\n```python\n# Misal: Visit → Signup → Purchase\nfunnel_data = {\n    "Stage": ["Visit", "Signup", "Purchase"],\n    "Users": [10000, 3000, 800]\n}\ndf_funnel = pd.DataFrame(funnel_data)\ndf_funnel["Conversion"] = df_funnel["Users"] / df_funnel["Users"].iloc[0]\ndf_funnel["Drop-off"] = 1 - df_funnel["Users"] / df_funnel["Users"].shift(1)\n```',
+    ],
+  },
+
+  // ─── FEATURE IMPORTANCE ───────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(feature\s*importance|fitur\s*penting|fitur\s*mana\s*yang\s*penting|permutation\s*importance)\b/i,
+      /cara\s*(cek|lihat|tampilkan)\s*feature\s*importance/i,
+      /fitur\s*(mana|apa\s*saja)\s*yang\s*(paling\s*)?penting/i,
+    ],
+    responses: [
+      'Feature Importance — fitur mana yang paling berpengaruh pada prediksi model:\n```python\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\n# Dari tree-based model\nfeature_imp = pd.Series(\n    rf_model.feature_importances_,\n    index=X_train.columns\n).sort_values(ascending=True)\n\nfeature_imp.plot(kind="barh", figsize=(10,8))\nplt.title("Feature Importance")\nplt.tight_layout()\n\n# Permutation importance (model-agnostic)\nfrom sklearn.inspection import permutation_importance\nresult = permutation_importance(model, X_test, y_test, n_repeats=10)\n```',
+    ],
+  },
+
+  // ─── HYPOTHESIS TESTING LANJUTAN ─────────────────────────────────────────
+  {
+    patterns: [
+      /\b(mann.whitney|wilcoxon|kruskal|non.parametrik|shapiro.wilk|uji\s*normalitas|levene|bartlett)\b/i,
+      /cara\s*uji\s*(normalitas|homogenitas|non.parametrik)/i,
+      /uji\s*statistik\s*(non.parametrik|alternatif)/i,
+    ],
+    responses: [
+      "Flowchart pilih uji statistik yang benar:\n\n1. Data normal? Cek dengan Shapiro-Wilk (p>0.05 = normal)\n2. Jika NORMAL:\n   • 2 grup independen → t-test independen\n   • 2 grup berpasangan → t-test berpasangan\n   • 3+ grup → ANOVA\n3. Jika TIDAK NORMAL:\n   • 2 grup independen → Mann-Whitney U\n   • 2 grup berpasangan → Wilcoxon\n   • 3+ grup → Kruskal-Wallis\n4. Kategorik → Chi-square / Fisher's Exact 🔬",
+      'Non-parametrik tests dengan Python:\n```python\nfrom scipy import stats\n\n# Uji normalitas Shapiro-Wilk\nstat, p = stats.shapiro(data)\nprint(f"Shapiro-Wilk: stat={stat:.4f}, p={p:.4f}")\nif p > 0.05: print("Data normal")\nelse: print("Data tidak normal → pakai non-parametrik")\n\n# Mann-Whitney U (2 grup tidak normal)\nu_stat, p = stats.mannwhitneyu(grup_a, grup_b, alternative="two-sided")\n\n# Kruskal-Wallis (3+ grup tidak normal)\nstat, p = stats.kruskal(grup_a, grup_b, grup_c)\n```',
+    ],
+  },
+
+  // ─── DATA VISUALIZATION BEST PRACTICES ────────────────────────────────────
+  {
+    patterns: [
+      /\b(chart\s*yang\s*baik|visualisasi\s*yang\s*efektif|tips\s*visualisasi|warna\s*chart|color\s*blind|colorblind)\b/i,
+      /cara\s*(buat|design)\s*(chart|visualisasi|dashboard)\s*yang\s*(baik|efektif|menarik)/i,
+      /\b(misleading\s*chart|chart\s*menyesatkan|visualisasi\s*salah)\b/i,
+    ],
+    responses: [
+      'Prinsip Gestalt untuk visualisasi data efektif:\n👁️ Proximity — elemen dekat = berhubungan\n🎨 Similarity — warna/bentuk sama = kategori sama\n📐 Continuity — mata mengikuti garis\n🔲 Enclosure — border/kotak mengelompokkan\n\nGuide: 1 chart = 1 pesan. Judul = kesimpulan! 🎯',
+      'Pilihan warna yang aman (colorblind-friendly):\n• Pakai palette: Viridis, Cividis, ColorBrewer\n• Hindari merah+hijau bersamaan (8% pria color blind!)\n• Tambahkan pattern/texture sebagai alternatif warna\n```python\nsns.set_palette("colorblind")  # Seaborn\n# atau\nimport matplotlib as plt\nplt.style.use("tableau-colorblind10")\n```',
+      'Chart yang sering disalahgunakan:\n🥧 Pie chart → max 5 slice, gunakan bar chart untuk lebih banyak\n📊 3D chart → selalu hindari! Distorsi persepsi\n📉 Y-axis tidak dari 0 → membesar-besarkan perbedaan\n📈 Dual Y-axis → sering menyesatkan\n✂️ Truncated axis → manipulasi visual 🚫',
+    ],
+  },
+
+  // ─── SQL WINDOW FUNCTIONS LANJUTAN ────────────────────────────────────────
+  {
+    patterns: [
+      /\b(window\s*function|fungsi\s*window|rank\b|dense_rank|row_number|lead\b|lag\b|ntile|percent_rank|cumulative)\b/i,
+      /cara\s*(pakai|buat)\s*window\s*function/i,
+      /sql\s*(lanjutan|advanced|window)/i,
+    ],
+    responses: [
+      'SQL Window Functions — analisis tanpa GROUP BY:\n```sql\n-- RANK vs DENSE_RANK vs ROW_NUMBER\nSELECT nama, nilai,\n  RANK() OVER (ORDER BY nilai DESC) as rank_with_gap,\n  DENSE_RANK() OVER (ORDER BY nilai DESC) as rank_no_gap,\n  ROW_NUMBER() OVER (ORDER BY nilai DESC) as nomor_urut\nFROM siswa;\n-- Nilai sama: RANK=1,1,3 | DENSE_RANK=1,1,2 | ROW_NUMBER=1,2,3\n\n-- Top N per group\nSELECT * FROM (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY departemen ORDER BY gaji DESC) as rn\n  FROM karyawan\n) WHERE rn <= 3;  -- top 3 gaji per departemen\n```',
+      'LAG & LEAD untuk analisis perbandingan:\n```sql\nSELECT\n  bulan, revenue,\n  LAG(revenue) OVER (ORDER BY bulan) as revenue_bulan_lalu,\n  revenue - LAG(revenue) OVER (ORDER BY bulan) as selisih,\n  ROUND(\n    (revenue - LAG(revenue) OVER (ORDER BY bulan)) /\n    LAG(revenue) OVER (ORDER BY bulan) * 100, 2\n  ) as growth_pct,\n  LEAD(revenue) OVER (ORDER BY bulan) as revenue_bulan_depan\nFROM penjualan_bulanan;\n```',
+    ],
+  },
+
+  // ─── REGEX UNTUK DATA ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(regex\s*pandas|str\.extract|str\.contains|str\.replace|text\s*cleaning\s*python)\b/i,
+      /cara\s*(bersihkan|clean)\s*(teks|text)\s*(python|pandas)/i,
+      /pandas\s*string\s*(operation|method|manipulation)/i,
+    ],
+    responses: [
+      'Pandas String Operations untuk text cleaning:\n```python\n# Semua method str.X()\ndf["teks"].str.lower()           # lowercase\ndf["teks"].str.upper()           # uppercase\ndf["teks"].str.strip()           # hapus whitespace\ndf["teks"].str.replace(",", "")  # replace karakter\ndf["teks"].str.contains("error") # filter yang mengandung\ndf["teks"].str.startswith("ID")  # filter prefix\ndf["teks"].str.len()             # hitung panjang\n\n# Regex di Pandas\ndf["teks"].str.extract(r"(\\d{4})")  # ekstrak 4 digit\ndf["teks"].str.replace(r"[^a-zA-Z0-9]", " ", regex=True)  # hapus simbol\ndf["email"].str.extract(r"@(\\w+)\\.com")[0]  # ekstrak domain\n```',
+    ],
+  },
+
+  // ══════════════════════  PROGRAMMING FUNDAMENTALS  ═══════════════════════════
+
+  // ─── ALGORITMA & STRUKTUR DATA ────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(algoritma|algorithm|struktur\s*data|data\s*structure|big\s*o|kompleksitas\s*waktu|time\s*complexity|sorting|searching)\b/i,
+      /apa\s*itu\s*(big\s*o|time\s*complexity|struktur\s*data)/i,
+      /\b(linked\s*list|stack\b|queue\b|tree\b|graph\b|hash\s*table|binary\s*search)\b.*\b(itu\s*apa|adalah|cara\s*kerja)\b/i,
+    ],
+    responses: [
+      'Big O Notation mengukur efisiensi algoritma:\n⚡ O(1) — konstan (akses array by index)\n📋 O(log n) — logaritmik (binary search)\n📈 O(n) — linear (loop sederhana)\n📊 O(n log n) — merge sort, quick sort\n😱 O(n²) — nested loop (bubble sort)\n💀 O(2ⁿ) — exponential (hindari!)\n\nSemakin kecil Big O, semakin efisien! 🎯',
+      'Struktur data yang wajib dikuasai:\n📋 Array/List — akses cepat by index\n🔗 Linked List — insert/delete cepat di tengah\n📚 Stack — LIFO (Last In First Out), undo/redo\n🎫 Queue — FIFO (First In First Out), task queue\n🌳 Tree — hirarki, binary search tree\n🕸️ Graph — relasi kompleks, social network\n🗝️ Hash Table — key-value, O(1) lookup (dict Python!)',
+      'Algoritma sorting:\n🐌 Bubble Sort O(n²) — untuk belajar saja\n🔀 Merge Sort O(n log n) — stable, divide & conquer\n⚡ Quick Sort O(n log n) avg — in-place, sering paling cepat\n🎯 Python sorted() pakai TimSort — hybrid merge+insertion!',
+    ],
+  },
+
+  // ─── OOP (OBJECT ORIENTED PROGRAMMING) ───────────────────────────────────
+  {
+    patterns: [
+      /\b(oop|object\s*oriented|class\b|inheritance|encapsulation|polymorphism|abstraction|constructor|method\b|instance\b)\b/i,
+      /apa\s*itu\s*(oop|inheritance|encapsulation|polymorphism)/i,
+      /prinsip\s*(oop|solid\b|dry\b|kiss\b|yagni\b)/i,
+    ],
+    responses: [
+      '4 Pilar OOP:\n📦 Encapsulation — sembunyikan detail internal, expose interface\n🧬 Inheritance — class anak mewarisi class induk\n🔄 Polymorphism — satu interface, banyak implementasi\n🎭 Abstraction — sembunyikan kompleksitas, tunjukkan essential',
+      'SOLID Principles — panduan OOP berkualitas:\n🔴 S — Single Responsibility: 1 class, 1 tanggung jawab\n🟠 O — Open/Closed: terbuka untuk extension, tertutup untuk modification\n🟡 L — Liskov Substitution: subclass harus bisa gantikan superclass\n🟢 I — Interface Segregation: interface kecil & spesifik\n🔵 D — Dependency Inversion: depend pada abstraction, bukan concrete class 📐',
+      'OOP Python contoh:\n```python\nclass Animal:\n    def __init__(self, name: str):\n        self.name = name  # encapsulation\n    def speak(self) -> str:\n        raise NotImplementedError  # abstraction\n    def __repr__(self): return f"Animal({self.name})"\n\nclass Dog(Animal):  # inheritance\n    def speak(self): return f"{self.name}: Woof!"\n\nclass Cat(Animal):\n    def speak(self): return f"{self.name}: Meow!"\n\nanimals = [Dog("Rex"), Cat("Luna")]\nfor a in animals: print(a.speak())  # polymorphism\n```',
+    ],
+  },
+
+  // ─── DESIGN PATTERNS ──────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(design\s*pattern|pola\s*desain|singleton|factory|observer|decorator\s*pattern|strategy\s*pattern|mvc|mvvm|repository\s*pattern)\b/i,
+      /apa\s*itu\s*(singleton|factory\s*pattern|observer\s*pattern|mvc)/i,
+    ],
+    responses: [
+      'Design Patterns adalah solusi yang sudah terbukti untuk masalah desain software yang umum. Dibagi 3 kategori:\n🏗️ Creational — cara membuat objek (Singleton, Factory, Builder)\n🔗 Structural — cara menyusun objek (Adapter, Decorator, Facade)\n🎭 Behavioral — cara objek berkomunikasi (Observer, Strategy, Command)',
+      'Design patterns paling sering dipakai:\n1️⃣ Singleton — pastikan hanya ada 1 instance\n2️⃣ Factory — buat objek tanpa specify class konkret\n3️⃣ Observer — pub/sub, event-driven (addEventListener!)\n4️⃣ Strategy — pilih algoritma saat runtime\n5️⃣ Repository — abstraksi akses database\n\nPahami masalahnya dulu, baru gunakan pattern yang tepat! 🎯',
+    ],
+  },
+
+  // ─── FUNCTIONAL PROGRAMMING ───────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(functional\s*programming|fp\b|pure\s*function|immutable|higher.order\s*function|map\s*filter\s*reduce|lambda\b|closure\b|currying)\b/i,
+      /apa\s*itu\s*(functional\s*programming|pure\s*function|closure|currying)/i,
+    ],
+    responses: [
+      'Functional Programming (FP) prinsip utama:\n✅ Pure functions — output hanya bergantung pada input, no side effects\n✅ Immutability — data tidak diubah, dibuat copy baru\n✅ Higher-order functions — fungsi yang terima/return fungsi lain\n✅ Function composition — gabungkan fungsi kecil jadi pipeline\n\nJavaScript & Python mendukung FP! 🔧',
+      'FP di JavaScript praktis:\n```js\n// Pure function\nconst add = (a, b) => a + b  // selalu sama hasilnya\n\n// Higher-order functions\nconst numbers = [1,2,3,4,5]\nnumbers.map(x => x * 2)        // [2,4,6,8,10]\nnumbers.filter(x => x % 2 === 0) // [2,4]\nnumbers.reduce((acc, x) => acc + x, 0) // 15\n\n// Closure\nconst counter = () => {\n  let count = 0\n  return () => ++count\n}\nconst inc = counter()\ninc() // 1, inc() // 2\n```',
+    ],
+  },
+
+  // ─── ASYNC PROGRAMMING ────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(async|await|promise|callback\s*hell|event\s*loop|concurrency|parallelism|async\s*programming)\b/i,
+      /apa\s*itu\s*(promise|async\s*await|event\s*loop)/i,
+      /cara\s*(handle|tangani)\s*(async|asynchronous|promise)/i,
+    ],
+    responses: [
+      'JavaScript Async evolution:\n😱 Callback Hell → 🔗 Promise → ✨ Async/Await\n\nAsync/Await adalah Promise dengan syntax yang lebih bersih:\n```js\n// Promise\nfetch(url)\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err))\n\n// Async/Await (lebih bersih!)\nasync function getData() {\n  try {\n    const res = await fetch(url)\n    const data = await res.json()\n    return data\n  } catch (err) {\n    console.error(err)\n  }\n}\n```',
+      'Promise patterns yang berguna:\n```js\n// Parallel (jalankan sekaligus)\nconst [users, posts] = await Promise.all([\n  fetchUsers(), fetchPosts()\n])\n\n// Race (ambil yang paling cepat)\nconst result = await Promise.race([fastApi(), slowApi()])\n\n// Sequential dengan loop\nfor (const id of ids) {\n  const data = await fetchById(id) // satu per satu\n}\n\n// Parallel dengan loop\nconst results = await Promise.all(ids.map(fetchById))\n```',
+    ],
+  },
+
+  // ══════════════════════  TOOLS & ECOSYSTEM  ══════════════════════════════════
+
+  // ─── LINTING & FORMATTING ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(eslint|prettier|biome\b|linting|formatting|husky\b|lint.staged|pre.commit\s*hook)\b/i,
+      /cara\s*(setup|pasang|config)\s*(eslint|prettier|husky)/i,
+      /code\s*(quality|style|format)\s*tools/i,
+    ],
+    responses: [
+      'ESLint + Prettier setup untuk React/TS:\n```bash\nnpm install -D eslint prettier eslint-config-prettier\nnpx eslint --init\n```\n\n`.prettierrc`:\n```json\n{\n  "semi": false,\n  "singleQuote": true,\n  "tabWidth": 2,\n  "trailingComma": "es5"\n}\n```',
+      'Husky + lint-staged — auto lint sebelum commit:\n```bash\nnpm install -D husky lint-staged\nnpx husky init\n```\n`package.json`:\n```json\n"lint-staged": {\n  "*.{ts,tsx}": ["eslint --fix", "prettier --write"]\n}\n```\n\nSekarang setiap `git commit` otomatis format kode! ✨',
+      'Biome — alternatif modern (ESLint + Prettier dalam 1 tool, 10x lebih cepat):\n```bash\nnpm install -D @biomejs/biome\nnpx @biomejs/biome init\nnpx @biomejs/biome check --apply .\n```',
+    ],
+  },
+
+  // ─── ENVIRONMENT VARIABLES ────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(\.env|environment\s*variable|env\s*variable|dotenv|process\.env|secret\s*management)\b/i,
+      /cara\s*(pakai|setup|manage)\s*(env|environment\s*variable|\.env)/i,
+      /simpan\s*(api\s*key|secret|credential)\s*(yang\s*aman|aman)/i,
+    ],
+    responses: [
+      'Environment Variables best practices:\n```bash\n# .env (JANGAN commit ke Git!)\nDATABASE_URL=postgresql://...\nJWT_SECRET=supersecretkey\nAPI_KEY=abc123\n\n# .env.example (commit ini — template tanpa nilai)\nDATABASE_URL=\nJWT_SECRET=\nAPI_KEY=\n```\n\n`.gitignore` wajib include `.env`! 🔒',
+      'Vite env vars (prefix VITE_):\n```ts\n// .env\nVITE_API_URL=https://api.example.com\nVITE_APP_NAME=FutureStack\n\n// Di kode\nconst apiUrl = import.meta.env.VITE_API_URL\nconst isProd = import.meta.env.PROD\nconst isDev = import.meta.env.DEV\n```\n\nTanpa prefix VITE_, variabel tidak bisa diakses di browser (keamanan)! 🛡️',
+    ],
+  },
+
+  // ─── MONITORING & LOGGING ─────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(monitoring|logging|sentry\b|error\s*tracking|log\s*management|observability|datadog|grafana|prometheus)\b/i,
+      /cara\s*(monitor|pantau)\s*(app|aplikasi|error|production)/i,
+      /apa\s*itu\s*(sentry|observability|monitoring\s*app)/i,
+    ],
+    responses: [
+      'Sentry — error tracking wajib di production:\n```bash\nnpm install @sentry/react\n```\n```ts\nimport * as Sentry from "@sentry/react"\n\nSentry.init({\n  dsn: import.meta.env.VITE_SENTRY_DSN,\n  tracesSampleRate: 1.0,\n  environment: import.meta.env.MODE\n})\n```\nSetiap error + stack trace langsung masuk dashboard Sentry! 🔍',
+      'Observability 3 pilar:\n📋 Logs — apa yang terjadi? (Winston, Pino)\n📊 Metrics — seberapa sering/lama? (Prometheus + Grafana)\n🔍 Traces — perjalanan request? (OpenTelemetry, Jaeger)\n\nTanpa observability = "blind flying" di production! ✈️',
+    ],
+  },
+
+  // ─── TESTING LANJUTAN ────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(mock\b|stub\b|spy\b|test\s*double|integration\s*test|unit\s*test\s*react|testing\s*library|msw\b|snapshot\s*test)\b/i,
+      /cara\s*(mock|test)\s*(api|component|react)/i,
+      /react\s*testing\s*library/i,
+    ],
+    responses: [
+      'React Testing Library — test UI dari perspektif user:\n```tsx\nimport { render, screen, fireEvent } from "@testing-library/react"\nimport userEvent from "@testing-library/user-event"\n\ntest("tombol counter increment", async () => {\n  render(<Counter />)\n  \n  expect(screen.getByText("Count: 0")).toBeInTheDocument()\n  \n  await userEvent.click(screen.getByRole("button", { name: /increment/i }))\n  \n  expect(screen.getByText("Count: 1")).toBeInTheDocument()\n})\n```',
+      'MSW (Mock Service Worker) — mock API di test dan development:\n```ts\nimport { http, HttpResponse } from "msw"\nimport { setupServer } from "msw/node"\n\nconst server = setupServer(\n  http.get("/api/users", () => {\n    return HttpResponse.json([{ id: 1, name: "Yusjul" }])\n  })\n)\n\nbeforeAll(() => server.listen())\nafterEach(() => server.resetHandlers())\nafterAll(() => server.close())\n```',
+    ],
+  },
+
+  // ──════════════════════  SOFT SKILLS & KARIR  ════════════════════════════════
+
+  // ─── CODE REVIEW ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(code\s*review|peer\s*review|review\s*kode|pull\s*request\s*review)\b/i,
+      /cara\s*(lakukan|berikan|minta)\s*code\s*review/i,
+      /tips\s*code\s*review/i,
+    ],
+    responses: [
+      'Code Review yang efektif:\n👍 Berikan pujian untuk kode yang bagus\n🎯 Tunjukkan masalah + solusi, bukan hanya kritik\n❓ Gunakan pertanyaan, bukan pernyataan ("Apakah kita bisa..." bukan "Ini salah")\n📏 Fokus pada kode, bukan orangnya\n⏱️ Review dalam 24 jam agar tidak blocking\n✅ Setujui PR yang sudah cukup baik, jangan perfectionism! 🤝',
+      'Checklist Code Review:\n✅ Logic benar?\n✅ Edge case sudah dihandle?\n✅ Error handling ada?\n✅ Naming yang jelas?\n✅ Duplikasi bisa dihindari?\n✅ Test sudah ada/update?\n✅ Performance issue?\n✅ Security concern? 🔍',
+    ],
+  },
+
+  // ─── DOKUMENTASI ─────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(dokumentasi|documentation|readme|jsdoc|tsdoc|swagger|openapi|wiki\b|changelog)\b/i,
+      /cara\s*(tulis|buat)\s*(dokumentasi|readme|changelog)/i,
+      /tips\s*dokumentasi/i,
+    ],
+    responses: [
+      'README.md yang baik wajib punya:\n📌 Project name + deskripsi singkat\n🚀 Quick start (cara run dalam 3 langkah)\n📋 Prerequisites\n⚙️ Installation\n🔑 Environment variables\n📡 API endpoints (jika ada)\n🤝 Contributing guide\n📄 License\n\n"Documentation is a love letter to your future self." 💌',
+      'JSDoc untuk TypeScript:\n```ts\n/**\n * Menghitung total harga dengan diskon\n * @param price - Harga awal dalam rupiah\n * @param discount - Persentase diskon (0-100)\n * @returns Harga akhir setelah diskon\n * @example\n * calculatePrice(100000, 20) // 80000\n */\nfunction calculatePrice(price: number, discount: number): number {\n  return price * (1 - discount / 100)\n}\n```',
+    ],
+  },
+
+  // ─── PROBLEM SOLVING ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(problem\s*solving|pemecahan\s*masalah|cara\s*berpikir|computational\s*thinking|divide\s*and\s*conquer)\b/i,
+      /cara\s*(selesaikan|pecahkan|hadapi)\s*(masalah|problem)\s*(programming|coding)/i,
+      /strategi\s*(coding|programming|problem\s*solving)/i,
+    ],
+    responses: [
+      "Framework Problem Solving untuk coding:\n1️⃣ UNDERSTAND — baca soal/requirement 2x, tanya sampai jelas\n2️⃣ EXPLORE — buat contoh input-output manual\n3️⃣ PLAN — pseudocode dulu, baru kode\n4️⃣ CODE — implementasi dari yang paling sederhana\n5️⃣ TEST — coba berbagai case, termasuk edge case\n6️⃣ REFACTOR — bersihkan dan optimalkan 🎯",
+      `"If you can't explain it simply, you don't understand it well enough." — Einstein\n\nRubber duck debugging: jelaskan kode baris per baris ke bebek (atau siapapun). Sering menemukan bug sendiri sebelum selesai menjelaskan! 🦆`,
+    ],
+  },
+
+  // ─── NETWORKING & INTERNET ────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(http|https|dns\b|tcp|ip\b|ssl|tls|cdn\b|cors\b|proxy|load\s*balancer|bandwidth|latency|protocol)\b/i,
+      /apa\s*itu\s*(http|https|dns|tcp\/ip|ssl|tls|cdn|cors)/i,
+      /cara\s*kerja\s*(internet|http|dns|ssl)/i,
+    ],
+    responses: [
+      'Cara kerja HTTP request:\n1. Browser resolve DNS (domain → IP address)\n2. TCP handshake (3-way: SYN → SYN-ACK → ACK)\n3. TLS handshake (jika HTTPS)\n4. Kirim HTTP request\n5. Server proses & kirim response\n6. Browser render halaman\n\nTotal ini terjadi dalam milidetik! ⚡',
+      'CORS (Cross-Origin Resource Sharing) — kenapa API kamu kena error CORS:\n\nBrowser blokir request dari domain berbeda demi keamanan. Solusi di server:\n```js\n// Express.js\nconst cors = require("cors")\napp.use(cors({\n  origin: ["https://futurestack.app", "http://localhost:5173"],\n  methods: ["GET", "POST", "PUT", "DELETE"],\n  credentials: true\n}))\n```',
+      'SSL/TLS mengenkripsi komunikasi browser-server. HTTP = tidak aman, HTTPS = aman. CDN (Content Delivery Network) mendistribusikan file ke server terdekat user → load time lebih cepat! 🌐',
+    ],
+  },
+
+  // ─── KEAMANAN WEB LANJUTAN ────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(csp\b|content\s*security\s*policy|helmet\.?js|security\s*header|https.only|hsts\b|sanitize\b|input\s*validation)\b/i,
+      /cara\s*(amankan|secure)\s*(express|api|web\s*app)/i,
+      /security\s*header/i,
+    ],
+    responses: [
+      'Security Headers wajib di production:\n```js\n// Express dengan Helmet.js\nconst helmet = require("helmet")\napp.use(helmet())  // auto set semua security headers!\n\n// Manual headers:\n// X-Frame-Options: DENY\n// X-Content-Type-Options: nosniff\n// Strict-Transport-Security: max-age=31536000\n// Content-Security-Policy: default-src \'self\'\n```',
+      'Input validation & sanitization:\n```js\n// Zod untuk validasi TypeScript\nimport { z } from "zod"\n\nconst UserSchema = z.object({\n  email: z.string().email(),\n  password: z.string().min(8).max(100),\n  age: z.number().int().min(0).max(150),\n  name: z.string().trim().min(1).max(100)\n})\n\n// Express middleware\napp.post("/register", (req, res) => {\n  const result = UserSchema.safeParse(req.body)\n  if (!result.success) return res.status(400).json(result.error)\n  // lanjut proses...\n})\n```',
+    ],
+  },
+
+  // ─── INTERVIEW TEKNIS ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(interview\s*teknis|technical\s*interview|coding\s*test|leetcode|hackerrank|sistem\s*design\s*interview|whiteboard)\b/i,
+      /persiapan\s*(interview|wawancara)\s*(teknis|developer|software\s*engineer)/i,
+      /tips\s*(interview|wawancara)\s*teknis/i,
+    ],
+    responses: [
+      'Persiapan Technical Interview:\n📚 DSA: pelajari Array, String, HashMap, Tree, Graph\n🔄 Patterns: Two Pointers, Sliding Window, BFS/DFS, DP\n🏗️ System Design: scaling, database design, caching, load balancing\n💬 Behavioral: STAR method (Situation, Task, Action, Result)\n⏱️ Practice: LeetCode Easy 50%, Medium 50% — jangan langsung Hard!',
+      'Tips saat coding interview:\n1. Clarify requirements dulu (jangan langsung kode!)\n2. Discuss approach sebelum implement\n3. Think out loud — interviewer ingin tahu cara berpikirmu\n4. Start dengan brute force, lalu optimasi\n5. Test dengan example + edge case\n6. Kalau stuck, minta hint — itu OK! 💪',
+    ],
+  },
+
+  // ─── TIPS BELAJAR UMUM ────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(spaced\s*repetition|active\s*recall|feynman\s*technique|pomodoro\s*belajar|cara\s*belajar\s*efektif|learning\s*tips)\b/i,
+      /cara\s*belajar\s*(yang\s*efektif|lebih\s*cepat|programming|coding)\s*(dengan\s*baik)?/i,
+      /tips\s*belajar\s*(programming|coding|data\s*science)/i,
+    ],
+    responses: [
+      'Teknik belajar paling efektif (berdasarkan penelitian):\n🔁 Spaced Repetition — review materi di interval yang makin jarang\n🧠 Active Recall — test diri sendiri, bukan hanya baca\n🦆 Feynman Technique — ajarkan ke orang lain (atau bebek!)\n🎯 Deliberate Practice — latihan di zona yang sedikit di atas kemampuan saat ini\n😴 Tidur cukup — memori dikuatkan saat tidur! 📚',
+      'Anti-patterns belajar yang harus dihindari:\n❌ Tutorial hell — nonton tutorial terus tanpa praktek\n❌ Passive reading — baca buku tanpa ngoding\n❌ Copy-paste kode tanpa memahami\n❌ Belajar terlalu banyak topik sekaligus\n❌ Skip fundamentals — langsung ke framework\n\n✅ Build > Watch. Code > Read. Teach > Learn alone! 🚀',
+    ],
+  },
+
+  // ─── PRODUKTIVITAS DEVELOPER ──────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(produktivitas\s*developer|developer\s*workflow|deep\s*work|context\s*switching|flow\s*state|zona\s*produktif)\b/i,
+      /cara\s*(jadi|menjadi)\s*(lebih\s*)?produktif\s*(sebagai\s*developer|coding)/i,
+      /tips\s*produktivitas\s*(developer|programmer|coding)/i,
+    ],
+    responses: [
+      'Deep Work untuk developer:\n🎯 Blok waktu 90-120 menit tanpa distraksi\n📵 Matikan notifikasi HP & Slack saat coding\n🎧 White noise / lo-fi untuk fokus\n📋 Clear to-do list sebelum mulai\n🚫 Tolak meeting yang tidak perlu\n\n"The ability to do deep work is becoming rare and valuable." — Cal Newport 💎',
+      'Optimalkan development environment:\n⚡ Pelajari shortcut editor (hemat 1-2 jam/minggu!)\n🔧 Automasi task berulang dengan scripts\n📋 Snippet untuk boilerplate code\n🖥️ Multi-monitor untuk referensi + coding\n☕ Ritual memulai coding (playlist, kopi, todo list)\n🌡️ Jaga suhu ruangan 20-22°C — optimal untuk fokus! 🧠',
+    ],
+  },
+
+  // ─── REMOTE WORK ──────────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(remote\s*work|kerja\s*remote|wfh|work\s*from\s*home|async\s*communication|timezone)\b/i,
+      /tips\s*(kerja|bekerja)\s*(remote|dari\s*rumah|wfh)/i,
+      /cara\s*(kerja|bekerja)\s*efektif\s*(remote|dari\s*rumah)/i,
+    ],
+    responses: [
+      'Tips Remote Work yang efektif:\n🏠 Dedicated workspace — pisahkan area kerja dan istirahat\n⏰ Jam kerja yang konsisten — mulai dan selesai di waktu yang sama\n📢 Over-communicate — lebih baik terlalu banyak update dari pada kurang\n📹 Nyalakan kamera di video call — membangun kepercayaan\n🤝 1-on-1 rutin dengan manager dan rekan tim\n🔋 Keluar rumah setiap hari — penting untuk mental health! 🧠',
+      'Tools remote collaboration terbaik:\n💬 Slack / Discord — komunikasi async\n📹 Zoom / Meet — video call\n📋 Notion / Confluence — dokumentasi\n🗂️ Linear / Jira — project management\n🎨 Figma — design collaboration\n🕐 Loom — async video message (kurangi meeting!) 🎥',
+    ],
+  },
+
+  // ─── BAHASA INDONESIA / BASA BASI ────────────────────────────────────────
+  {
+    patterns: [
+      /\b(gimana\s*kabar|apa\s*kabar|how\s*are\s*you|kabarmu|kamu\s*(baik|oke|sehat))\b/i,
+      /kamu\s*(lagi\s*)?(apa|ngapain|sibuk)/i,
+    ],
+    responses: [
+      'Baik-baik aja! Siap membantu kamu 100%. Ada yang bisa aku kerjakan? 😊',
+      'Aku selalu siap dan semangat! Gimana denganmu? Ada project atau pertanyaan yang mau dibahas? 🚀',
+      'Baik! Kalau kamu baik, aku juga baik. Yuk ngoding atau diskusi data science! 💻',
+    ],
+  },
+
+  // ─── PERTANYAAN EKSISTENSIAL BOT ──────────────────────────────────────────
+  {
+    patterns: [
+      /\b(kamu\s*bisa\s*apa|kemampuan\s*kamu|fitur\s*(bot|chatbot)|topik\s*apa\s*(saja|yang)\s*(bisa|kamu|kamu\s*jawab))\b/i,
+      /apa\s*saja\s*yang\s*kamu\s*(tahu|bisa|kuasai)/i,
+      /list\s*(topik|kemampuan|fitur)\s*(bot|kamu|chatbot)/i,
+    ],
+    responses: [
+      'Aku bisa membantu tentang:\n\n💻 Web Dev: React, TypeScript, Next.js, CSS, HTML\n🐍 Python & Data: Pandas, NumPy, Matplotlib, Scikit-learn\n📊 Data Science: ML, Deep Learning, NLP, Time Series\n🗄️ Database & SQL: PostgreSQL, Prisma, MongoDB\n🔒 Cybersecurity & Auth: JWT, OAuth, XSS, CSRF\n🛠️ DevOps: Git, Docker, CI/CD, Deploy\n🤖 AI Tools: Prompt engineering, LLM, RAG\n⚡ Performance & Testing\n💼 Karir, Freelance, Interview\n🎯 Produktivitas & Motivasi\n\nTanya apa saja! 😊',
+      'Kemampuanku mencakup 100+ topik seputar development dan data science! Mulai dari "apa itu pandas?" sampai "bagaimana cara deploy ke production". Tanya langsung aja, aku siap! 🚀',
+    ],
+  },
+
+  // ─── TOOLS KOLABORASI ─────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(jira|trello|asana|linear\b|clickup|notion\b|confluence|monday\.com|project\s*management\s*tool)\b/i,
+      /tools\s*(project\s*management|kolaborasi|tim)/i,
+      /rekomendasi\s*tools\s*(tim|kolaborasi|project)/i,
+    ],
+    responses: [
+      'Project Management Tools:\n🎯 Linear — modern, cepat, developer-friendly (rekomendasi!)\n📋 Jira — powerful, standard enterprise, banyak fitur\n🃏 Trello — sederhana, kanban visual, cocok tim kecil\n✅ Asana — timeline + task, cocok project non-dev\n📝 Notion — all-in-one doc + database + kanban\n\nSolo developer atau tim kecil → Linear atau Trello. Enterprise → Jira. 🏆',
+    ],
+  },
+
+  // ─── AI UNTUK CODING ──────────────────────────────────────────────────────
+  {
+    patterns: [
+      /\b(github\s*copilot|cursor\s*ide|claude\s*coding|ai\s*coding|ai\s*code\s*assistant|codeium|tabnine)\b/i,
+      /\b(ai\s*untuk\s*coding|gunakan\s*ai\s*(untuk|buat)\s*coding)\b/i,
+      /rekomendasi\s*ai\s*(coding|code)\s*(assistant|tools)/i,
+    ],
+    responses: [
+      'AI Coding Tools terbaik 2024:\n🤖 GitHub Copilot — terintegrasi VS Code, context-aware\n🖱️ Cursor — IDE berbasis AI, edit kode dengan chat\n⚡ Codeium — gratis, support 70+ bahasa\n🧠 Claude (Anthropic) — bagus untuk explain + debug kompleks\n\nCombination terbaik: Cursor + Claude untuk project serius! 💪',
+      'Tips efektif pakai AI coding:\n✅ Berikan context yang cukup (tempel kode + error)\n✅ Iterasi prompt kalau hasil kurang tepat\n✅ Selalu review kode yang digenerate (jangan blind trust!)\n✅ Gunakan untuk boilerplate, bukan logic bisnis kritis\n✅ Manfaatkan untuk belajar (minta explain kode) 🎓',
+    ],
+  },
+
+  // ─── PENUTUP / TERIMA KASIH SERIUS ────────────────────────────────────────
+  {
+    patterns: [
+      /\b(sangat\s*membantu|helpful|berguna|bermanfaat|aku\s*(jadi\s*)?paham|sekarang\s*(aku\s*)?mengerti|makasih\s*(banyak|banget|ya))\b/i,
+      /terima\s*kasih\s*(atas\s*)?(penjelasan|info|jawaban|bantuannya)/i,
+    ],
+    responses: [
+      'Syukurlah kalau membantu! 😊 Itu tujuan utamaku. Kalau ada yang kurang jelas atau mau lanjut topik lain, tanya aja!',
+      'Senang bisa membantu kamu paham! Semangat belajarnya dijaga ya. Konsisten > intensif sesekali! 🔥',
+      'Sama-sama! Kalau ada pertanyaan lain — entah soal coding, data science, atau apapun — aku siap. Keep building! 🚀',
     ],
   },
 ];

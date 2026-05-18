@@ -814,7 +814,11 @@ export function ChatBubble() {
                 messages.map(msg => (
                   <div key={msg.id} className={`relative z-10 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={['max-w-[85%] px-3 py-2 border-2', msg.role === 'user' ? 'bg-primary text-on-primary border-on-surface dark:border-[#a8a6ff]' : 'bg-surface-container dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] border-on-surface/40 dark:border-[#464552]'].join(' ')}>
-                      <p className="font-body text-body-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                      <p className="font-body text-body-sm whitespace-pre-wrap break-words">
+                        {msg.content.split(/(\*\*.*?\*\*)/g).map((part, i) => 
+                          part.startsWith('**') && part.endsWith('**') ? <strong key={i} className="font-bold">{part.slice(2, -2)}</strong> : part
+                        )}
+                      </p>
                       <p className="font-mono text-[10px] text-on-surface-variant/60 dark:text-[#c8c4d4]/60 text-right mt-1">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
