@@ -7,6 +7,7 @@ import {
   PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
 import { Skeleton } from '../components/Feedback';
+import { useTranslation } from '../translations';
 
 // ============================================
 // CHART THEME
@@ -34,6 +35,7 @@ function AnalyticsStat({ label, value, change, icon: Icon, color }: {
   icon: typeof TrendingUp;
   color: string;
 }) {
+  const { t } = useTranslation();
   const isPositive = change >= 0;
   return (
     <div className={`border-2 border-on-surface dark:border-[#a8a6ff] p-3 md:p-4 ${color} bg-surface dark:bg-[#1e1e2a]`}>
@@ -44,7 +46,7 @@ function AnalyticsStat({ label, value, change, icon: Icon, color }: {
       <p className="font-headline font-bold text-lg md:text-2xl text-on-surface dark:text-[#e5e1ea] mb-1">{value}</p>
       <div className={`flex items-center gap-1 font-mono text-xs ${isPositive ? 'text-[#84cc16]' : 'text-[#fa7a7a]'}`}>
         <ArrowUpRight size={12} className={!isPositive ? 'rotate-180' : ''} />
-        {Math.abs(change)}% vs last week
+        {Math.abs(change)}% {t('analytics.vs_last_week')}
       </div>
     </div>
   );
@@ -54,6 +56,7 @@ function AnalyticsStat({ label, value, change, icon: Icon, color }: {
 // ANALYTICS PAGE
 // ============================================
 export function AnalyticsPage() {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,9 +114,9 @@ export function AnalyticsPage() {
       <div className="mb-3 md:mb-8">
         <div className="flex items-center gap-2 mb-1">
           <BarChart3 size={14} className="text-primary dark:text-[var(--color-primary-fixed-dim-dark)]" />
-          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">Telemetry</span>
+          <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] uppercase tracking-widest">{t('analytics.badge')}</span>
         </div>
-        <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Analytics</h1>
+        <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">{t('analytics.title')}</h1>
       </div>
 
       {/* Stats row */}
@@ -128,10 +131,10 @@ export function AnalyticsPage() {
           ))
         ) : (
           <>
-            <AnalyticsStat label="Completed Tasks" value={completedTasks} change={24} icon={Activity} color="shadow-card-lime" />
-            <AnalyticsStat label="In Progress" value={inProgress} change={8} icon={Zap} color="shadow-card-cyan" />
-            <AnalyticsStat label="Active Projects" value={activeProjects} change={12} icon={TrendingUp} color="shadow-card-violet" />
-            <AnalyticsStat label="Completion Rate" value={tasks.length > 0 ? `${Math.round((completedTasks / tasks.length) * 100)}%` : '0%'} change={-3} icon={BarChart3} color="shadow-card-yellow" />
+            <AnalyticsStat label={t('analytics.stat_completed')} value={completedTasks} change={24} icon={Activity} color="shadow-card-lime" />
+            <AnalyticsStat label={t('analytics.stat_in_progress')} value={inProgress} change={8} icon={Zap} color="shadow-card-cyan" />
+            <AnalyticsStat label={t('analytics.stat_active_projects')} value={activeProjects} change={12} icon={TrendingUp} color="shadow-card-violet" />
+            <AnalyticsStat label={t('analytics.stat_completion_rate')} value={tasks.length > 0 ? `${Math.round((completedTasks / tasks.length) * 100)}%` : '0%'} change={-3} icon={BarChart3} color="shadow-card-yellow" />
           </>
         )}
       </div>
@@ -146,8 +149,8 @@ export function AnalyticsPage() {
             aria-label="Weekly velocity chart"
           >
             <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
-              <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Weekly Velocity</h2>
-              <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Tasks/day</span>
+              <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('analytics.chart_velocity')}</h2>
+              <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{t('analytics.chart_velocity_sub')}</span>
             </div>
             <div className="p-3 md:p-5">
               {loading ? <Skeleton height="h-48" /> : (
@@ -181,7 +184,7 @@ export function AnalyticsPage() {
             aria-label="Task status distribution"
           >
             <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552]">
-              <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Task Status</h2>
+              <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('analytics.chart_status')}</h2>
             </div>
             <div className="p-3 md:p-5">
               {loading ? <Skeleton height="h-48" /> : (
@@ -219,8 +222,8 @@ export function AnalyticsPage() {
           aria-label="Project progress chart"
         >
           <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
-            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Project Progress</h2>
-            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">Completion %</span>
+            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('analytics.chart_progress')}</h2>
+            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{t('analytics.chart_progress_sub')}</span>
           </div>
           <div className="p-3 md:p-5">
             {loading ? <Skeleton height="h-48" /> : (
@@ -229,7 +232,7 @@ export function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="4 4" stroke="#e5e1ea" strokeOpacity={0.5} horizontal={false} />
                   <XAxis type="number" domain={[0, 100]} tick={{ fontFamily: 'JetBrains Mono', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis dataKey="name" type="category" tick={{ fontFamily: 'JetBrains Mono', fontSize: 11 }} axisLine={false} tickLine={false} width={100} />
-                  <Tooltip {...ChartTooltipStyle} formatter={(v) => [`${v}%`, 'Progress']} />
+                  <Tooltip {...ChartTooltipStyle} formatter={(v) => [`${v}%`, t('analytics.tooltip_progress')]} />
                   <Bar dataKey="progress" fill="#2f3eff" radius={0} label={false} maxBarSize={24}>
                     {projectProgressData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -247,7 +250,7 @@ export function AnalyticsPage() {
           aria-label="Priority distribution chart"
         >
           <div className="px-3 md:px-5 py-2 md:py-4 border-b-2 border-on-surface dark:border-[#464552]">
-            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">Priority Distribution</h2>
+            <h2 className="font-headline font-semibold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t('analytics.chart_priority')}</h2>
           </div>
           <div className="p-3 md:p-5">
             {loading ? <Skeleton height="h-36" /> : (

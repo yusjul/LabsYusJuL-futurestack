@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Pin, Search, Trash2, Tag, Clock, FileText } from 'lucide-react';
+import { useTranslation } from '../translations';
 import { useApp } from '../store/AppContext';
 import { getAllNotes, saveNote, deleteNote } from '../database/db';
 import type { Note } from '../types';
@@ -18,7 +19,13 @@ function NoteCard({ note, active, onClick, onDelete, onPin }: {
   onDelete: (id: string) => void;
   onPin: (note: Note) => void;
 }) {
+  const { t } = useTranslation();
+  const { highlightQuery } = useApp();
   const preview = note.content.replace(/[#*`\[\]]/g, '').slice(0, 120);
+  const isHighlighted = highlightQuery && (
+    note.title.toLowerCase().includes(highlightQuery.toLowerCase()) ||
+    note.content.toLowerCase().includes(highlightQuery.toLowerCase())
+  );
 
   return (
     <article
@@ -28,6 +35,7 @@ function NoteCard({ note, active, onClick, onDelete, onPin }: {
         active
           ? 'border-primary dark:border-[var(--color-primary-fixed-dim-dark)] bg-primary-fixed/20 dark:bg-[var(--color-primary-container-dark)]/20 shadow-hard-violet'
           : 'border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#a8a6ff] hover:-translate-y-0.5 hover:shadow-hard dark:hover:shadow-[4px_4px_0px_0px_#a8a6ff]',
+        isHighlighted ? 'ring-[3px] ring-[var(--color-primary)] dark:ring-[var(--color-primary-fixed-dim-dark)] bg-primary/10 dark:bg-[var(--color-primary-fixed-dim-dark)]/10 shadow-[0_0_12px_var(--color-primary)] dark:shadow-[0_0_12px_var(--color-primary-fixed-dim-dark)] animate-pulse' : '',
       ].join(' ')}
       onClick={onClick}
       role="button"
@@ -40,14 +48,14 @@ function NoteCard({ note, active, onClick, onDelete, onPin }: {
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={e => { e.stopPropagation(); onPin(note); }}
-            aria-label={note.pinned ? 'Unpin note' : 'Pin note'}
+            aria-label={note.pinned ? t('notes.unpin_aria') : t('notes.pin_aria')}
             className="p-1 hover:bg-surface-container dark:hover:bg-[#252533] min-h-[32px] min-w-[32px] flex items-center justify-center"
           >
             <Pin size={12} className={note.pinned ? 'text-primary dark:text-[var(--color-primary-fixed-dim-dark)] fill-current' : ''} />
           </button>
           <button
             onClick={e => { e.stopPropagation(); onDelete(note.id); }}
-            aria-label="Delete note"
+            aria-label={t('notes.delete_aria')}
             className="p-1 hover:bg-[#ffdad6] dark:hover:bg-[#3d1515] min-h-[32px] min-w-[32px] flex items-center justify-center"
           >
             <Trash2 size={12} className="text-error" />
@@ -74,7 +82,7 @@ function NoteCard({ note, active, onClick, onDelete, onPin }: {
 
       {note.pinned && (
         <div className="mt-2">
-          <span className="font-mono text-[10px] px-1.5 py-0.5 bg-primary text-on-primary">PINNED</span>
+          <span className="font-mono text-[10px] px-1.5 py-0.5 bg-primary text-on-primary">{t('notes.pinned')}</span>
         </div>
       )}
     </article>
@@ -114,6 +122,7 @@ function MarkdownView({ content }: { content: string }) {
 // NOTES PAGE
 // ============================================
 export function NotesPage() {
+  const { t } = useTranslation();
   const { addToast, showSaved, dataVersion, requireAuth } = useApp();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,8 +203,8 @@ export function NotesPage() {
       const now = new Date().toISOString();
       const note: Note = {
         id: `note-${Date.now()}`,
-        title: 'Untitled Note',
-        content: '# New Note\n\nStart writing...',
+        title: t('notes.untitled'),
+        content: t('notes.default_content'),
         tags: [],
         pinned: false,
         createdAt: now,
@@ -213,7 +222,7 @@ export function NotesPage() {
     requireAuth(async () => {
       const updated = { ...note, pinned: !note.pinned, updatedAt: new Date().toISOString() };
       await handleSave(updated);
-      addToast({ message: updated.pinned ? 'Note pinned' : 'Note unpinned', type: 'info' });
+      addToast({ message: updated.pinned ? t('notes.toast_pinned') : t('notes.toast_unpinned'), type: 'info' });
     });
   }
 
@@ -228,7 +237,7 @@ export function NotesPage() {
       }
       setDeleteModalOpen(false);
       setNoteToDelete(null);
-      addToast({ message: 'Note deleted', type: 'info' });
+      addToast({ message: t('notes.toast_deleted'), type: 'info' });
     });
   }
 
@@ -252,15 +261,15 @@ export function NotesPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#c8c4d4]" />
             <input
               type="search"
-              placeholder="Search notes..."
+              placeholder={t('notes.search')}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              aria-label="Search notes"
+              aria-label={t('notes.search_aria')}
               className="w-full pl-9 pr-3 py-2 border-2 border-on-surface dark:border-[#464552] bg-surface-container dark:bg-[#1e1e2a] text-on-surface dark:text-[#e5e1ea] font-body text-body-sm focus:outline-none focus:border-[var(--color-primary-fixed-dim-light)] min-h-[44px]"
             />
           </div>
-          <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={createNote} aria-label="New note">
-            <span className="hidden sm:inline">New</span>
+          <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={createNote} aria-label={t('notes.new')}>
+            <span className="hidden sm:inline">{t('notes.new')}</span>
           </Button>
         </div>
 
@@ -277,9 +286,9 @@ export function NotesPage() {
           ) : filteredNotes.length === 0 ? (
             <EmptyState
               icon={<FileText size={24} />}
-              title="No notes found"
-              description={search ? 'Try a different search.' : 'Create your first note.'}
-              action={<Button variant="primary" size="sm" onClick={createNote}>+ New Note</Button>}
+              title={t('notes.empty_title')}
+              description={search ? t('notes.empty_desc_search') : t('notes.empty_desc')}
+              action={<Button variant="primary" size="sm" onClick={createNote}>{t('notes.create')}</Button>}
             />
           ) : (
             filteredNotes.map(note => (
@@ -307,7 +316,7 @@ export function NotesPage() {
                 <button
                   className="sm:hidden p-2 border-2 border-on-surface dark:border-[#a8a6ff] mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   onClick={() => setActiveNote(null)}
-                  aria-label="Back to notes"
+                  aria-label={t('notes.back')}
                 >
                   ←
                 </button>
@@ -316,7 +325,7 @@ export function NotesPage() {
                     value={editTitle}
                     onChange={e => handleTitleChange(e.target.value)}
                     className="font-headline font-bold text-headline-sm text-on-surface dark:text-[#e5e1ea] bg-transparent border-b-2 border-[var(--color-primary-fixed-dim-light)] w-full max-w-md focus:outline-none"
-                    aria-label="Note title"
+                    aria-label={t('notes.title_input_aria')}
                   />
                 ) : (
                   <h1 className="font-headline font-bold text-headline-sm text-on-surface dark:text-[#e5e1ea] truncate">{activeNote.title}</h1>
@@ -330,14 +339,14 @@ export function NotesPage() {
                     if (isEditing) {
                       const updated = { ...activeNote, title: editTitle, content: editContent, updatedAt: new Date().toISOString() };
                       handleSave(updated);
-                      addToast({ message: 'Note saved', type: 'success' });
+                      addToast({ message: t('notes.toast_saved'), type: 'success' });
                     }
                     setIsEditing(!isEditing);
                   }}
                 >
-                  {isEditing ? 'Save' : 'Edit'}
+                  {isEditing ? t('notes.save') : t('notes.edit')}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => handlePin(activeNote)} aria-label={activeNote.pinned ? 'Unpin' : 'Pin'}>
+                <Button variant="ghost" size="sm" onClick={() => handlePin(activeNote)} aria-label={activeNote.pinned ? t('notes.unpin') : t('notes.pin')}>
                   <Pin size={14} className={activeNote.pinned ? 'fill-current text-primary dark:text-[var(--color-primary-fixed-dim-dark)]' : ''} />
                 </Button>
               </div>
@@ -350,8 +359,8 @@ export function NotesPage() {
                   value={editContent}
                   onChange={e => handleContentChange(e.target.value)}
                   className="w-full h-full p-6 font-mono text-sm text-on-surface dark:text-[#e5e1ea] bg-surface dark:bg-[#1e1e2a] resize-none focus:outline-none leading-relaxed"
-                  placeholder="Write your note in Markdown..."
-                  aria-label="Note content editor"
+                  placeholder={t('notes.editor_placeholder')}
+                  aria-label={t('notes.editor_aria')}
                 />
               ) : (
                 <div className="p-6 max-w-4xl">
@@ -378,9 +387,9 @@ export function NotesPage() {
           <div className="flex-1 flex items-center justify-center">
             <EmptyState
               icon={<FileText size={32} />}
-              title="Select a note"
-              description="Choose a note from the list or create a new one."
-              action={<Button variant="primary" onClick={createNote} icon={<Plus size={14} />}>New Note</Button>}
+              title={t('notes.empty_title_select')}
+              description={t('notes.empty_desc_select')}
+              action={<Button variant="primary" onClick={createNote} icon={<Plus size={14} />}>{t('notes.create')}</Button>}
             />
           </div>
         )}
@@ -390,16 +399,16 @@ export function NotesPage() {
       <Modal
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        title="Delete Note?"
+        title={t('notes.delete_title')}
         size="sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-            <Button variant="danger" onClick={confirmDelete}>Delete</Button>
+            <Button variant="ghost" onClick={() => setDeleteModalOpen(false)}>{t('common.cancel')}</Button>
+            <Button variant="danger" onClick={confirmDelete}>{t('common.delete')}</Button>
           </>
         }
       >
-        <p className="font-body text-body-md text-on-surface dark:text-[#e5e1ea]">This action cannot be undone.</p>
+        <p className="font-body text-body-md text-on-surface dark:text-[#e5e1ea]">{t('notes.delete_desc')}</p>
       </Modal>
     </div>
   );
