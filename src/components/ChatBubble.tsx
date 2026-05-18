@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, History, Trash2, PlusCircle, MessageSquare } from 'lucide-react';
+import { Send, History, Trash2, PlusCircle, MessageSquare, FileText } from 'lucide-react';
 import { animate } from 'animejs';
 import { AssistantFace } from './AssistantFace';
 import { sendMessage } from '../utils/gemini';
 import { parseAction, type ParsedAction, type ActionType } from '../utils/actionParser';
 import { useApp } from '../store/AppContext';
-import { saveProject, saveTask, saveNote, getAllProjects, getAllTasks, deleteProject, deleteTask } from '../database/db';
+import { saveProject, saveTask, saveNote, getAllProjects, getAllTasks, deleteProject, deleteTask,
+  saveChatSession, deleteChatSession, getMessagesBySession, saveChatMessage, deleteMessagesBySession, getAllChatSessions } from '../database/db';
 import { addTombstone } from '../database/sync';
-import type { ChatMessage, Project, Task, Note, ActivePage } from '../types';
+import type { ChatMessage, ChatSession, Project, Task, Note, ActivePage, ChatMessageDB } from '../types';
+import { useTranslation } from '../translations';
 
 const PROJECT_COLORS = ['violet', 'cyan', 'lime', 'yellow', 'red'];
 function randomColor() { return PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)]; }
@@ -25,11 +27,8 @@ interface PendingAction {
   params: Record<string, string>;
 }
 
-export interface ChatSession {
-  id: string;
-  title: string;
-  timestamp: number;
-  messages: ChatMessage[];
+function toMessageDB(msg: ChatMessage, sessionId: string): ChatMessageDB {
+  return { ...msg, sessionId, updatedAt: new Date().toISOString() };
 }
 
 export function ChatBubble() {
@@ -46,8 +45,11 @@ export function ChatBubble() {
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<ReturnType<typeof animate> | null>(null);
+  const savedMsgIds = useRef(new Set<string>());
 
-  const { user, requireAuth, setActivePage, addToast, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask } = useApp();
+  const { user, requireAuth, setActivePage, addToast, bumpDataVersion, pushProjectAfterSave, pushTaskAfterSave, pushNoteAfterSave, deleteRemoteProject, deleteRemoteTask,
+    pushChatSessionAfterSave, deleteRemoteChatSession, pushChatMessageAfterSave, deleteRemoteChatMessage } = useApp();
+  const { t } = useTranslation();
   const hasUnread = !open && messages.length > 0 && messages[messages.length - 1].role === 'assistant';
 
   const shortName = user ? (user.user_metadata?.full_name || user.user_metadata?.username || user.email || '').substring(0, 3).toUpperCase() : '';
@@ -100,63 +102,99 @@ export function ChatBubble() {
 
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages, showHistory]);
 
-  // Muat riwayat awal
+  // Muat riwayat awal & migrasi dari localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('fs_chat_sessions');
-      if (stored) {
-        const parsed = JSON.parse(stored) as ChatSession[];
-        setSessions(parsed);
-      }
-    } catch { }
+    (async () => {
+      try {
+        // Migrasi dari localStorage ke IndexedDB
+        const stored = localStorage.getItem('fs_chat_sessions');
+        if (stored) {
+          const localSessions = JSON.parse(stored) as Array<{ id: string; title: string; timestamp: number; messages: ChatMessage[] }>;
+          for (const ls of localSessions) {
+            const now = new Date().toISOString();
+            await saveChatSession({ id: ls.id, title: ls.title, createdAt: now, updatedAt: now });
+            for (const m of ls.messages) {
+              await saveChatMessage({ ...m, sessionId: ls.id, updatedAt: now });
+            }
+          }
+          localStorage.removeItem('fs_chat_sessions');
+        }
+
+        const dbSessions = await getAllChatSessions();
+        setSessions(dbSessions);
+
+        if (!currentSessionId && dbSessions.length > 0) {
+          const first = dbSessions[0];
+          setCurrentSessionId(first.id);
+          const msgs = await getMessagesBySession(first.id);
+          msgs.forEach(m => savedMsgIds.current.add(m.id));
+          prevMessagesLen.current = msgs.length;
+          setMessages(msgs);
+        }
+      } catch { }
+    })();
   }, []);
 
-  // Simpan riwayat tiap ada pesan baru (kecuali kosong)
+  // Simpan pesan baru ke IndexedDB — pakai ref, nggak perlu query DB tiap kali
+  const prevMessagesLen = useRef(0);
   useEffect(() => {
-    if (messages.length === 0) return;
-    setSessions(prev => {
-      const existingIdx = prev.findIndex(s => s.id === currentSessionId);
-      const newSessions = [...prev];
-      if (existingIdx >= 0) {
-        newSessions[existingIdx].messages = messages;
-        newSessions[existingIdx].timestamp = Date.now();
+    const len = messages.length;
+    if (len === 0 || len === prevMessagesLen.current) return;
+    const newMsgs = messages.slice(prevMessagesLen.current);
+    prevMessagesLen.current = len;
+    (async () => {
+      const now = new Date().toISOString();
+      let sessionId = currentSessionId;
+
+      if (!sessionId) {
+        sessionId = `sess-${Date.now()}`;
+        setCurrentSessionId(sessionId);
+        const title = messages[0].content.slice(0, 30) + '...';
+        const session: ChatSession = { id: sessionId, title, createdAt: now, updatedAt: now };
+        await saveChatSession(session);
+        await pushChatSessionAfterSave(session);
+        setSessions(prev => [session, ...prev]);
       } else {
-        const newId = `sess-${Date.now()}`;
-        setCurrentSessionId(newId);
-        newSessions.unshift({
-          id: newId,
-          title: messages[0].content.slice(0, 30) + '...',
-          timestamp: Date.now(),
-          messages
-        });
+        // Update session timestamp sekali per batch
+        const existing = sessions.find(s => s.id === sessionId);
+        await saveChatSession({ id: sessionId, title: existing?.title || 'Chat', createdAt: existing?.createdAt || now, updatedAt: now });
       }
-      localStorage.setItem('fs_chat_sessions', JSON.stringify(newSessions));
-      return newSessions;
-    });
-  }, [messages, currentSessionId]);
+
+      for (const msg of newMsgs) {
+        if (savedMsgIds.current.has(msg.id)) continue;
+        savedMsgIds.current.add(msg.id);
+        const dbMsg = toMessageDB(msg, sessionId);
+        await saveChatMessage(dbMsg);
+        pushChatMessageAfterSave(dbMsg);
+      }
+    })();
+  }, [messages]);
 
   function startNewChat() {
     setMessages([]);
     setCurrentSessionId(null);
     setShowHistory(false);
-    if (sessions.length >= 10) {
-      addToast({ message: '⚠️ Batas riwayat maksimal (10). Hapus riwayat lama untuk menyimpan yang baru!', type: 'warning' });
-    }
+    savedMsgIds.current = new Set();
+    prevMessagesLen.current = 0;
   }
 
   function loadSession(sess: ChatSession) {
     setCurrentSessionId(sess.id);
-    setMessages(sess.messages);
     setShowHistory(false);
+    getMessagesBySession(sess.id).then(msgs => {
+      savedMsgIds.current = new Set(msgs.map(m => m.id));
+      prevMessagesLen.current = msgs.length;
+      setMessages(msgs);
+    });
   }
 
   function deleteSession(id: string, e: React.MouseEvent) {
     e.stopPropagation();
-    setSessions(prev => {
-      const filtered = prev.filter(s => s.id !== id);
-      localStorage.setItem('fs_chat_sessions', JSON.stringify(filtered));
-      return filtered;
-    });
+    addTombstone(id);
+    deleteMessagesBySession(id);
+    deleteChatSession(id);
+    deleteRemoteChatSession(id);
+    setSessions(prev => prev.filter(s => s.id !== id));
     if (currentSessionId === id) {
       setMessages([]);
       setCurrentSessionId(null);
@@ -748,27 +786,27 @@ export function ChatBubble() {
                 <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                   <span className="text-xs font-bold">AI</span>
                 </div>
-                <span className="font-mono text-xs font-bold uppercase tracking-wider">Assistant</span>
+                <span className="font-mono text-xs font-bold uppercase tracking-wider">{t('chat.assistant')}</span>
               </div>
               {user ? (
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setShowHistory(h => !h)}
-                    title="Daftar Riwayat Chat"
+                    title={t('chat.history')}
                     className="flex items-center justify-center w-7 h-7 bg-surface-container dark:bg-[#252533] border border-on-surface/30 dark:border-[#464552] rounded-md hover:bg-on-surface/5 transition-colors cursor-pointer group"
                   >
                     {showHistory ? <MessageSquare size={14} className="text-on-surface-variant group-hover:text-primary transition-colors" /> : <History size={14} className="text-on-surface-variant group-hover:text-primary transition-colors" />}
                   </button>
                   <button
                     onClick={startNewChat}
-                    title="Chat Baru"
+                    title={t('chat.new_chat')}
                     className="flex items-center justify-center w-7 h-7 bg-surface-container dark:bg-[#252533] border border-on-surface/30 dark:border-[#464552] rounded-md hover:bg-on-surface/5 transition-colors cursor-pointer group"
                   >
                     <PlusCircle size={14} className="text-on-surface-variant group-hover:text-primary transition-colors" />
                   </button>
                 </div>
               ) : (
-                <span className="font-mono text-[10px] text-yellow-200 px-1.5 py-0.5 bg-yellow-800/30 border border-yellow-200/30">GUEST ({guestLeft} left)</span>
+                <span className="font-mono text-[10px] text-yellow-200 px-1.5 py-0.5 bg-yellow-800/30 border border-yellow-200/30">{t('chat.guest_badge')} ({guestLeft} left)</span>
               )}
             </div>
 
@@ -783,15 +821,15 @@ export function ChatBubble() {
 
               {showHistory ? (
                 <div className="space-y-2">
-                  <h3 className="font-mono text-[11px] font-bold text-on-surface-variant uppercase mb-3">Riwayat Chat ({sessions.length}/10)</h3>
+                  <h3 className="font-mono text-[11px] font-bold text-on-surface-variant uppercase mb-3">{t('chat.history_title')} ({sessions.length})</h3>
                   {sessions.length === 0 ? (
-                    <p className="font-mono text-xs text-on-surface-variant text-center py-4">Belum ada riwayat</p>
+                    <p className="font-mono text-xs text-on-surface-variant text-center py-4">{t('chat.no_history')}</p>
                   ) : (
                     sessions.map(s => (
                       <div key={s.id} onClick={() => loadSession(s)} className="relative z-10 group flex items-center justify-between p-2 border border-on-surface/20 dark:border-[#464552] bg-surface dark:bg-[#252533] hover:border-primary cursor-pointer transition-colors">
                         <div className="flex flex-col overflow-hidden min-w-0 pr-2">
                           <span className="font-body text-xs font-medium text-on-surface truncate">{s.title}</span>
-                          <span className="font-mono text-[9px] text-on-surface-variant">{new Date(s.timestamp).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                          <span className="font-mono text-[9px] text-on-surface-variant">{new Date(s.updatedAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
                         </div>
                         <button onClick={(e) => deleteSession(s.id, e)} className="p-1.5 flex-shrink-0 text-on-surface-variant hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <Trash2 size={14} />
@@ -802,10 +840,10 @@ export function ChatBubble() {
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-2">👋 Hai{shortName ? ` ${shortName}` : ''}! Ada yang bisa dibantu?</p>
-                  <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] mb-3">Tanya seputar project, task, atau coding</p>
+                  <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-2">{t('chat.welcome', { name: shortName })}</p>
+                  <p className="font-mono text-[10px] text-on-surface-variant dark:text-[#c8c4d4] mb-3">{t('chat.welcome_sub')}</p>
                   <div className="flex flex-wrap justify-center gap-1.5">
-                    {['Buat project baru', 'Lihat semua task', 'Tips coding'].map(cmd => (
+                    {[t('chat.suggestion_project'), t('chat.suggestion_tasks'), t('chat.suggestion_tips')].map(cmd => (
                       <button key={cmd} onClick={() => setInput(cmd)} className="font-mono text-[10px] px-2 py-1 border border-on-surface/30 dark:border-[#464552] bg-surface-container dark:bg-[#252533] text-on-surface-variant dark:text-[#c8c4d4] hover:bg-primary/10 transition-colors cursor-pointer">{cmd}</button>
                     ))}
                   </div>
@@ -819,6 +857,31 @@ export function ChatBubble() {
                           part.startsWith('**') && part.endsWith('**') ? <strong key={i} className="font-bold">{part.slice(2, -2)}</strong> : part
                         )}
                       </p>
+                      {msg.role === 'assistant' && (msg.content.includes('**Langkah') || msg.content.includes('**Tutorial') || msg.content.includes('**Cara') || msg.content.startsWith('📁') || msg.content.startsWith('📋') || msg.content.startsWith('📝') || msg.content.startsWith('☁️')) && (
+                        <button
+                          onClick={async () => {
+                            const titleLine = msg.content.split('\n')[0].replace(/[*#\s]/g, '').trim();
+                            const now = new Date().toISOString();
+                            const noteData = {
+                              id: `note-${Date.now()}`,
+                              title: titleLine || 'Chat Documentation',
+                              content: msg.content,
+                              tags: ['documentation', 'chat'],
+                              pinned: false,
+                              createdAt: now,
+                              updatedAt: now,
+                            };
+                            await saveNote(noteData);
+                            await pushNoteAfterSave(noteData);
+                            bumpDataVersion();
+                            addToast({ message: t('chat.saved_as_note'), type: 'success' });
+                          }}
+                          className="mt-2 w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-mono border border-on-surface/30 dark:border-[#464552] bg-surface dark:bg-[#1e1e2a] text-on-surface-variant dark:text-[#c8c4d4] hover:bg-primary/10 hover:text-primary dark:hover:text-[var(--color-primary-fixed-dim-dark)] transition-colors cursor-pointer min-h-[32px]"
+                        >
+                          <FileText size={10} />
+                          {t('chat.save_as_note')}
+                        </button>
+                      )}
                       <p className="font-mono text-[10px] text-on-surface-variant/60 dark:text-[#c8c4d4]/60 text-right mt-1">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -843,7 +906,7 @@ export function ChatBubble() {
             {pending && (
               <div className="px-4 py-1.5 bg-primary/10 dark:bg-[#a8a6ff]/10 border-t border-primary/20">
                 <p className="font-mono text-[10px] text-primary dark:text-[#a8a6ff]">
-                  ⏳ Menunggu jawaban: {pending.step === 'ask_name' ? 'nama/judul' : 'nama project'}
+                  {pending.step === 'ask_name' ? t('chat.pending_name') : t('chat.pending_project')}
                 </p>
               </div>
             )}
@@ -851,7 +914,7 @@ export function ChatBubble() {
             {/* Input */}
             <div className="border-t-2 border-on-surface dark:border-[#464552] p-3 flex gap-2">
               <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                placeholder={pending ? (pending.step === 'ask_name' ? 'Ketik nama/judul...' : 'Ketik nama project...') : 'Ketik pesan...'}
+                placeholder={pending ? (pending.step === 'ask_name' ? t('chat.input_placeholder_name') : t('chat.input_placeholder_project')) : t('chat.input_placeholder')}
                 disabled={loading}
                 className="flex-1 px-3 py-2 border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] font-body text-body-sm focus:outline-none focus:border-primary dark:focus:border-[var(--color-primary-fixed-dim-dark)] min-h-[44px]" />
               <button onClick={handleSend} disabled={loading || !input.trim()}

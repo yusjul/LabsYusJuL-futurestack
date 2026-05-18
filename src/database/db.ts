@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Project, Task, Note, UserSettings } from '../types';
+import type { Project, Task, Note, UserSettings, ChatSession, ChatMessageDB } from '../types';
 
 // ============================================
 // DATABASE SCHEMA
@@ -24,34 +24,49 @@ interface FutureStackDB extends DBSchema {
     key: string;
     value: UserSettings & { id: string };
   };
+  chat_sessions: {
+    key: string;
+    value: ChatSession;
+    indexes: { 'by-updated': string };
+  };
+  chat_messages: {
+    key: string;
+    value: ChatMessageDB;
+    indexes: { 'by-session': string };
+  };
 }
 
 const DB_NAME = 'futurestack-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let db: IDBPDatabase<FutureStackDB> | null = null;
 
 export async function getDB(): Promise<IDBPDatabase<FutureStackDB>> {
   if (db) return db;
   db = await openDB<FutureStackDB>(DB_NAME, DB_VERSION, {
-    upgrade(database) {
-      // Projects store
-      const projectStore = database.createObjectStore('projects', { keyPath: 'id' });
-      projectStore.createIndex('by-status', 'status');
-      projectStore.createIndex('by-updated', 'updatedAt');
+    upgrade(database, oldVersion) {
+      if (oldVersion < 1) {
+        const projectStore = database.createObjectStore('projects', { keyPath: 'id' });
+        projectStore.createIndex('by-status', 'status');
+        projectStore.createIndex('by-updated', 'updatedAt');
 
-      // Tasks store
-      const taskStore = database.createObjectStore('tasks', { keyPath: 'id' });
-      taskStore.createIndex('by-project', 'projectId');
-      taskStore.createIndex('by-status', 'status');
+        const taskStore = database.createObjectStore('tasks', { keyPath: 'id' });
+        taskStore.createIndex('by-project', 'projectId');
+        taskStore.createIndex('by-status', 'status');
 
-      // Notes store
-      const noteStore = database.createObjectStore('notes', { keyPath: 'id' });
-      noteStore.createIndex('by-updated', 'updatedAt');
-      noteStore.createIndex('by-pinned', 'pinned' as never);
+        const noteStore = database.createObjectStore('notes', { keyPath: 'id' });
+        noteStore.createIndex('by-updated', 'updatedAt');
+        noteStore.createIndex('by-pinned', 'pinned' as never);
 
-      // Settings store
-      database.createObjectStore('settings', { keyPath: 'id' });
+        database.createObjectStore('settings', { keyPath: 'id' });
+      }
+      if (oldVersion < 2) {
+        const sessionStore = database.createObjectStore('chat_sessions', { keyPath: 'id' });
+        sessionStore.createIndex('by-updated', 'updatedAt');
+
+        const msgStore = database.createObjectStore('chat_messages', { keyPath: 'id' });
+        msgStore.createIndex('by-session', 'sessionId');
+      }
     },
   });
   return db;
@@ -138,10 +153,101 @@ export async function saveSettings(settings: UserSettings): Promise<void> {
 }
 
 // ============================================
+// CHAT SESSION CRUD
+// ============================================
+export async function getAllChatSessions(): Promise<ChatSession[]> {
+  const database = await getDB();
+  return database.getAll('chat_sessions');
+}
+
+export async function getChatSession(id: string): Promise<ChatSession | undefined> {
+  const database = await getDB();
+  return database.get('chat_sessions', id);
+}
+
+export async function saveChatSession(session: ChatSession): Promise<void> {
+  const database = await getDB();
+  await database.put('chat_sessions', session);
+}
+
+export async function deleteChatSession(id: string): Promise<void> {
+  const database = await getDB();
+  await database.delete('chat_sessions', id);
+}
+
+// ============================================
+// CHAT MESSAGE CRUD
+// ============================================
+export async function getMessagesBySession(sessionId: string): Promise<ChatMessageDB[]> {
+  const database = await getDB();
+  return database.getAllFromIndex('chat_messages', 'by-session', sessionId);
+}
+
+export async function getAllChatMessages(): Promise<ChatMessageDB[]> {
+  const database = await getDB();
+  return database.getAll('chat_messages');
+}
+
+export async function saveChatMessage(msg: ChatMessageDB): Promise<void> {
+  const database = await getDB();
+  await database.put('chat_messages', msg);
+}
+
+export async function deleteChatMessage(id: string): Promise<void> {
+  const database = await getDB();
+  await database.delete('chat_messages', id);
+}
+
+export async function deleteMessagesBySession(sessionId: string): Promise<void> {
+  const database = await getDB();
+  const messages = await database.getAllFromIndex('chat_messages', 'by-session', sessionId);
+  const tx = database.transaction('chat_messages', 'readwrite');
+  await Promise.all(messages.map(m => tx.store.delete(m.id)));
+  await tx.done;
+}
+
+// ============================================
+// CLEAR ALL DATA
+// ============================================
+export async function clearAllData(): Promise<void> {
+  const database = await getDB();
+
+  const tx1 = database.transaction('projects', 'readwrite');
+  const allProjects = await database.getAll('projects');
+  await Promise.all(allProjects.map(p => tx1.store.delete(p.id)));
+  await tx1.done;
+
+  const tx2 = database.transaction('tasks', 'readwrite');
+  const allTasks = await database.getAll('tasks');
+  await Promise.all(allTasks.map(t => tx2.store.delete(t.id)));
+  await tx2.done;
+
+  const tx3 = database.transaction('notes', 'readwrite');
+  const allNotes = await database.getAll('notes');
+  await Promise.all(allNotes.map(n => tx3.store.delete(n.id)));
+  await tx3.done;
+
+  const tx4 = database.transaction('chat_sessions', 'readwrite');
+  const allSessions = await database.getAll('chat_sessions');
+  await Promise.all(allSessions.map(s => tx4.store.delete(s.id)));
+  await tx4.done;
+
+  const tx5 = database.transaction('chat_messages', 'readwrite');
+  const allMsgs = await database.getAll('chat_messages');
+  await Promise.all(allMsgs.map(m => tx5.store.delete(m.id)));
+  await tx5.done;
+
+  try { localStorage.removeItem('fs_tombstones'); } catch { }
+}
+
+// ============================================
 // SEED DATA
 // ============================================
-export async function seedDatabase(): Promise<void> {
+export async function seedDatabase(forceReseed = false): Promise<void> {
   const database = await getDB();
+
+  if (forceReseed) await clearAllData();
+
   const existingProjects = await database.getAll('projects');
   const existingNotes = await database.getAll('notes');
   const alreadySeeded = existingProjects.length > 0;

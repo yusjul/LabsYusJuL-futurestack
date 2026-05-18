@@ -108,6 +108,8 @@ export interface UserProfile {
 // ============================================
 // SETTINGS TYPES
 // ============================================
+export type Lang = 'en' | 'id';
+
 export interface UserSettings {
   theme: Theme;
   accentColor: string;
@@ -117,6 +119,7 @@ export interface UserSettings {
   autoSave: boolean;
   name: string;
   email: string;
+  language: Lang;
 }
 
 // ============================================
@@ -129,7 +132,19 @@ export interface Toast {
   duration?: number;
 }
 
-export type ActivePage = 'dashboard' | 'projects' | 'kanban' | 'notes' | 'analytics' | 'settings' | 'login';
+export type ActivePage = 'dashboard' | 'projects' | 'kanban' | 'notes' | 'analytics' | 'settings' | 'documentation' | 'login';
+
+// ============================================
+// DOCUMENTATION TYPES
+// ============================================
+export interface DocEntry {
+  id: string;
+  title: string;
+  content: string;
+  category: 'quickstart' | 'feature' | 'tutorial' | 'shortcut';
+  tags: string[];
+  updatedAt: string;
+}
 
 // ============================================
 // CHAT TYPES
@@ -139,6 +154,22 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessageDB {
+  id: string;
+  sessionId: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  updatedAt: string;
 }
 
 // ============================================

@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Project, Task, Note } from '../types';
+import type { Project, Task, Note, ChatSession, ChatMessageDB } from '../types';
 import * as db from './db';
 
 export interface SyncStatus {
@@ -11,6 +11,8 @@ export interface SyncResult {
   projects: SyncStatus;
   tasks: SyncStatus;
   notes: SyncStatus;
+  chatSessions: SyncStatus;
+  chatMessages: SyncStatus;
   error?: string;
 }
 
@@ -142,12 +144,16 @@ export async function fullSync(): Promise<SyncResult> {
     const projects = await syncTable<Project>('projects', db.getAllProjects, db.saveProject, db.deleteProject);
     const tasks = await syncTable<Task>('tasks', db.getAllTasks, db.saveTask, db.deleteTask);
     const notes = await syncTable<Note>('notes', db.getAllNotes, db.saveNote, db.deleteNote);
-    return { projects, tasks, notes };
+    const chatSessions = await syncTable<ChatSession>('chat_sessions', db.getAllChatSessions, db.saveChatSession, db.deleteChatSession);
+    const chatMessages = await syncTable<ChatMessageDB>('chat_messages', db.getAllChatMessages, db.saveChatMessage, db.deleteChatMessage);
+    return { projects, tasks, notes, chatSessions, chatMessages };
   } catch (e) {
     return {
       projects: { synced: 0, errors: [] },
       tasks: { synced: 0, errors: [] },
       notes: { synced: 0, errors: [] },
+      chatSessions: { synced: 0, errors: [] },
+      chatMessages: { synced: 0, errors: [] },
       error: e instanceof Error ? e.message : String(e),
     };
   }
@@ -199,6 +205,43 @@ export async function deleteRemoteNote(id: string): Promise<void> {
 }
 
 // ============================================
+// CHAT SESSION SYNC
+// ============================================
+export async function pushChatSession(session: ChatSession): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from('chat_sessions')
+    .upsert({ ...recordToSnake(session as unknown as Record<string, unknown>), user_id: user.id })
+    .eq('id', session.id);
+}
+
+export async function deleteRemoteChatSession(id: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from('chat_sessions').delete().eq('id', id).eq('user_id', user.id);
+  await supabase.from('chat_messages').delete().eq('session_id', id).eq('user_id', user.id);
+}
+
+// ============================================
+// CHAT MESSAGE SYNC
+// ============================================
+export async function pushChatMessage(msg: ChatMessageDB): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from('chat_messages')
+    .upsert({ ...recordToSnake(msg as unknown as Record<string, unknown>), user_id: user.id })
+    .eq('id', msg.id);
+}
+
+export async function deleteRemoteChatMessage(id: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from('chat_messages').delete().eq('id', id).eq('user_id', user.id);
+}
+
+// ============================================
 // REALTIME SUBSCRIPTION
 // ============================================
 type Unsubscribe = () => void;
@@ -215,7 +258,7 @@ export function subscribeToChanges(onRemoteChange: () => void): void {
   if (!hasSupabaseCreds) return;
   unsubscribeAll();
 
-  const tables = ['projects', 'tasks', 'notes'] as const;
+  const tables = ['projects', 'tasks', 'notes', 'chat_sessions', 'chat_messages'] as const;
   for (const table of tables) {
     const channel = supabase
       .channel(`public:${table}`)
