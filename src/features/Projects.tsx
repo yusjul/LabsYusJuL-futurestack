@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Folder, Archive, FileEdit, Tag, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, Search, Folder, Archive, FileEdit, Tag, Trash2, MoreVertical, CalendarDays } from 'lucide-react';
+import { useTranslation } from '../translations';
 import { useApp } from '../store/AppContext';
 import { getAllProjects, getAllTasks, saveProject, deleteProject, deleteTask } from '../database/db';
 import { addTombstone } from '../database/sync';
@@ -44,6 +45,37 @@ const priorityBadge: Record<string, string> = {
 };
 
 // ============================================
+// DATE CATEGORY
+// ============================================
+function getDateCategory(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (dateDay.getTime() === today.getTime()) return 'today';
+  if (dateDay.getTime() === yesterday.getTime()) return 'yesterday';
+
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+
+  if (dateDay >= monday) return 'this_week';
+
+  const lastMonday = new Date(monday);
+  lastMonday.setDate(lastMonday.getDate() - 7);
+
+  if (dateDay >= lastMonday) return 'last_week';
+
+  return 'older';
+}
+
+const CATEGORY_ORDER = ['today', 'yesterday', 'this_week', 'last_week', 'older'] as const;
+
+// ============================================
 // PROJECT CARD
 // ============================================
 function ProjectCard({ project, onEdit, onDelete, taskStats }: {
@@ -52,10 +84,16 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
   onDelete: (id: string) => void;
   taskStats?: { total: number; done: number };
 }) {
+  const { t } = useTranslation();
+  const { highlightQuery } = useApp();
   const colors = colorMap[project.color] || colorMap.violet;
   const total = taskStats?.total ?? project.taskCount;
   const done = taskStats?.done ?? project.completedTasks;
   const progress = total > 0 ? Math.round((done / total) * 100) : project.progress;
+  const isHighlighted = highlightQuery && (
+    project.name.toLowerCase().includes(highlightQuery.toLowerCase()) ||
+    project.description.toLowerCase().includes(highlightQuery.toLowerCase())
+  );
 
   return (
     <article
@@ -64,6 +102,7 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
         'bg-surface dark:bg-[#1e1e2a] p-3 md:p-5 flex flex-col gap-3 md:gap-4',
         colors.shadow,
         'transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5',
+        isHighlighted ? 'ring-[3px] ring-[var(--color-primary)] dark:ring-[var(--color-primary-fixed-dim-dark)] bg-primary/10 dark:bg-[var(--color-primary-fixed-dim-dark)]/10 shadow-[0_0_12px_var(--color-primary)] dark:shadow-[0_0_12px_var(--color-primary-fixed-dim-dark)] animate-pulse' : '',
       ].join(' ')}
     >
       {/* Header */}
@@ -78,17 +117,17 @@ function ProjectCard({ project, onEdit, onDelete, taskStats }: {
         <Dropdown
           trigger={
             <button
-              aria-label={`More options for ${project.name}`}
+              aria-label={`${t('projects.more_options')} ${project.name}`}
               className="p-1.5 hover:bg-surface-container dark:hover:bg-[#252533] border border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <MoreVertical size={14} />
             </button>
           }
           items={[
-            { id: 'edit', label: 'Edit Project', icon: <FileEdit size={14} /> },
-            { id: 'archive', label: 'Archive', icon: <Archive size={14} /> },
+            { id: 'edit', label: t('projects.edit'), icon: <FileEdit size={14} /> },
+            { id: 'archive', label: t('projects.archive'), icon: <Archive size={14} /> },
             { id: 'divider', label: '', divider: true },
-            { id: 'delete', label: 'Delete', icon: <Trash2 size={14} />, danger: true },
+            { id: 'delete', label: t('projects.delete'), icon: <Trash2 size={14} />, danger: true },
           ]}
           onSelect={id => {
             if (id === 'edit') onEdit(project);
@@ -157,6 +196,7 @@ function ProjectModal({ open, project, onClose, onSave }: {
   onClose: () => void;
   onSave: (p: Project) => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(defaultForm);
 
   useEffect(() => {
@@ -198,71 +238,71 @@ function ProjectModal({ open, project, onClose, onSave }: {
     <Modal
       open={open}
       onClose={onClose}
-      title={project ? 'Edit Project' : 'New Project'}
+      title={project ? t('projects.edit') : t('projects.new')}
       size="lg"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!form.name}>
-            {project ? 'Save Changes' : 'Create Project'}
+            {project ? t('projects.save_changes') : t('projects.create_project')}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
         <Input
-          label="Project Name"
+          label={t('projects.name_label')}
           value={form.name}
           onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          placeholder="My Awesome Project"
+          placeholder={t('projects.name_placeholder')}
         />
         <div className="flex flex-col gap-1">
-          <label className="font-mono text-xs uppercase tracking-wide text-on-surface dark:text-[#e5e1ea]">Description</label>
+          <label className="font-mono text-xs uppercase tracking-wide text-on-surface dark:text-[#e5e1ea]">{t('projects.desc_label')}</label>
           <textarea
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             rows={3}
-            placeholder="What does this project do?"
+            placeholder={t('projects.desc_placeholder')}
             className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] px-3 py-2 font-body text-body-sm shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#a8a6ff] focus:outline-none focus:border-[var(--color-primary-fixed-dim-light)] focus:shadow-[3px_3px_0px_0px_var(--color-primary-fixed-dim-light)] resize-none"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Select
-            label="Status"
+            label={t('projects.status_label')}
             value={form.status}
             onChange={e => setForm(f => ({ ...f, status: e.target.value as ProjectStatus }))}
             options={[
-              { value: 'active', label: 'Active' },
-              { value: 'draft', label: 'Draft' },
-              { value: 'archived', label: 'Archived' },
+              { value: 'active', label: t('projects.status_active') },
+              { value: 'draft', label: t('projects.status_draft') },
+              { value: 'archived', label: t('projects.status_archived') },
             ]}
           />
           <Select
-            label="Priority"
+            label={t('projects.priority_label')}
             value={form.priority}
             onChange={e => setForm(f => ({ ...f, priority: e.target.value as Project['priority'] }))}
             options={[
-              { value: 'low', label: 'Low' },
-              { value: 'medium', label: 'Medium' },
-              { value: 'high', label: 'High' },
-              { value: 'critical', label: 'Critical' },
+              { value: 'low', label: t('projects.priority_low') },
+              { value: 'medium', label: t('projects.priority_medium') },
+              { value: 'high', label: t('projects.priority_high') },
+              { value: 'critical', label: t('projects.priority_critical') },
             ]}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Select
-            label="Color"
+            label={t('projects.color_label')}
             value={form.color}
             onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
             options={[
-              { value: 'violet', label: 'Violet' },
-              { value: 'cyan', label: 'Cyan' },
-              { value: 'lime', label: 'Lime' },
-              { value: 'yellow', label: 'Yellow' },
+              { value: 'violet', label: t('projects.color_violet') },
+              { value: 'cyan', label: t('projects.color_cyan') },
+              { value: 'lime', label: t('projects.color_lime') },
+              { value: 'yellow', label: t('projects.color_yellow') },
             ]}
           />
           <Input
-            label="Progress %"
+            label={t('projects.progress_label')}
             type="number"
             min="0"
             max="100"
@@ -271,10 +311,10 @@ function ProjectModal({ open, project, onClose, onSave }: {
           />
         </div>
         <Input
-          label="Tags (comma separated)"
+          label={t('projects.tags_label')}
           value={form.tags}
           onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
-          placeholder="react, typescript, vite"
+          placeholder={t('projects.tags_placeholder')}
           leftIcon={<Tag size={14} />}
         />
       </div>
@@ -286,6 +326,7 @@ function ProjectModal({ open, project, onClose, onSave }: {
 // PROJECTS PAGE
 // ============================================
 export function ProjectsPage() {
+  const { t } = useTranslation();
   const { addToast, showSaved, pushProjectAfterSave, deleteRemoteProject, deleteRemoteTask, bumpDataVersion, dataVersion, requireAuth } = useApp();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -357,9 +398,9 @@ export function ProjectsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 mb-3 md:mb-8">
         <div>
-          <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Projects</h1>
+          <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">{t('projects.title')}</h1>
           <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">
-            {projects.length} total · {projects.filter(p => p.status === 'active').length} active
+            {projects.length} {t('projects.subtitle')} · {projects.filter(p => p.status === 'active').length} active
           </p>
         </div>
         <Button
@@ -367,7 +408,7 @@ export function ProjectsPage() {
           icon={<Plus size={14} />}
           onClick={() => requireAuth(() => { setEditingProject(null); setModalOpen(true); })}
         >
-          New Project
+          {t('projects.new')}
         </Button>
       </div>
 
@@ -377,10 +418,10 @@ export function ProjectsPage() {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-[#c8c4d4]" />
           <input
             type="search"
-            placeholder="Search projects..."
+            placeholder={t('projects.search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            aria-label="Search projects"
+            aria-label={t('projects.search_aria')}
             className="w-full pl-9 pr-4 py-2 border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#1e1e2a] text-on-surface dark:text-[#e5e1ea] font-body text-body-sm shadow-hard-sm dark:shadow-[2px_2px_0px_0px_#a8a6ff] focus:outline-none focus:border-[var(--color-primary-fixed-dim-light)] focus:shadow-[3px_3px_0px_0px_var(--color-primary-fixed-dim-light)] min-h-[44px]"
           />
         </div>
@@ -402,28 +443,51 @@ export function ProjectsPage() {
         </div>
       </div>
 
-      {/* Projects grid: 1 col mobile, 2 col tablet, 3 col desktop */}
+      {/* Projects grouped by recency */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<Folder size={28} />}
-          title={search ? 'No projects found' : 'No projects yet'}
-          description={search ? 'Try a different search term.' : 'Create your first project to get started.'}
+          title={search ? t('projects.empty_title_search') : t('projects.empty_title')}
+          description={search ? t('projects.empty_desc_search') : t('projects.empty_desc')}
           action={
             <Button variant="primary" icon={<Plus size={14} />} onClick={() => requireAuth(() => { setEditingProject(null); setModalOpen(true); })}>
-              Create Project
+              {t('projects.create')}
             </Button>
           }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-          {filtered.map(project => (
-            <ProjectCard key={project.id} project={project} onEdit={handleEdit} onDelete={handleDelete} taskStats={taskStatsMap.get(project.id)} />
-          ))}
-        </div>
+        (() => {
+          const sorted = [...filtered].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          const grouped: Record<string, Project[]> = {};
+          for (const p of sorted) {
+            const cat = getDateCategory(p.createdAt);
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(p);
+          }
+          return CATEGORY_ORDER.map(cat => {
+            const items = grouped[cat];
+            if (!items || items.length === 0) return null;
+            return (
+              <section key={cat} className="mb-6 md:mb-8 last:mb-0">
+                <div className="flex items-center gap-2 mb-3 md:mb-4">
+                  <CalendarDays size={16} className="text-on-surface-variant dark:text-[#777584]" />
+                  <h2 className="font-headline font-bold text-headline-sm text-on-surface dark:text-[#e5e1ea]">{t(`projects.${cat}`)}</h2>
+                  <span className="font-mono text-xs text-on-surface-variant dark:text-[#777584]">({items.length})</span>
+                  <div className="flex-1 h-px bg-on-surface/10 dark:bg-[#464552]/50" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                  {items.map(project => (
+                    <ProjectCard key={project.id} project={project} onEdit={handleEdit} onDelete={handleDelete} taskStats={taskStatsMap.get(project.id)} />
+                  ))}
+                </div>
+              </section>
+            );
+          });
+        })()
       )}
 
       <ProjectModal

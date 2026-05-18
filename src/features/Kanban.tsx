@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, GripVertical, MoreHorizontal, Tag, CalendarDays, AlertCircle, Trash2, Edit3 } from 'lucide-react';
+import { useTranslation } from '../translations';
 import { useApp } from '../store/AppContext';
 import { getAllTasks, getAllProjects, saveTask, saveProject, deleteTask } from '../database/db';
 import { addTombstone } from '../database/sync';
@@ -13,13 +14,15 @@ import { Dropdown } from '../components/Navigation';
 // ============================================
 // COLUMN CONFIG
 // ============================================
-const columns: { id: TaskStatus; label: string; color: string; dotColor: string; shadowColor: string }[] = [
-  { id: 'backlog', label: 'Backlog', color: 'border-on-surface-variant dark:border-[#777584]', dotColor: 'bg-on-surface-variant dark:bg-[#777584]', shadowColor: 'shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]' },
-  { id: 'todo', label: 'To Do', color: 'border-primary dark:border-[var(--color-primary-fixed-dim-dark)]', dotColor: 'bg-primary dark:bg-[var(--color-primary-fixed-dim-dark)]', shadowColor: 'shadow-hard-violet dark:shadow-[4px_4px_0px_0px_var(--color-primary-fixed-dim-dark)]' },
-  { id: 'in-progress', label: 'In Progress', color: 'border-[#06b6d4]', dotColor: 'bg-[#06b6d4]', shadowColor: 'shadow-[4px_4px_0px_0px_#06b6d4]' },
-  { id: 'review', label: 'Review', color: 'border-[#eab308]', dotColor: 'bg-[#eab308]', shadowColor: 'shadow-[4px_4px_0px_0px_#eab308]' },
-  { id: 'done', label: 'Done', color: 'border-[#84cc16]', dotColor: 'bg-[#84cc16]', shadowColor: 'shadow-[4px_4px_0px_0px_#84cc16]' },
-];
+function getColumns(t: (key: string) => string): { id: TaskStatus; label: string; color: string; dotColor: string; shadowColor: string }[] {
+  return [
+    { id: 'backlog', label: t('kanban.column_backlog'), color: 'border-on-surface-variant dark:border-[#777584]', dotColor: 'bg-on-surface-variant dark:bg-[#777584]', shadowColor: 'shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]' },
+    { id: 'todo', label: t('kanban.column_todo'), color: 'border-primary dark:border-[var(--color-primary-fixed-dim-dark)]', dotColor: 'bg-primary dark:bg-[var(--color-primary-fixed-dim-dark)]', shadowColor: 'shadow-hard-violet dark:shadow-[4px_4px_0px_0px_var(--color-primary-fixed-dim-dark)]' },
+    { id: 'in-progress', label: t('kanban.column_in_progress'), color: 'border-[#06b6d4]', dotColor: 'bg-[#06b6d4]', shadowColor: 'shadow-[4px_4px_0px_0px_#06b6d4]' },
+    { id: 'review', label: t('kanban.column_review'), color: 'border-[#eab308]', dotColor: 'bg-[#eab308]', shadowColor: 'shadow-[4px_4px_0px_0px_#eab308]' },
+    { id: 'done', label: t('kanban.column_done'), color: 'border-[#84cc16]', dotColor: 'bg-[#84cc16]', shadowColor: 'shadow-[4px_4px_0px_0px_#84cc16]' },
+  ];
+}
 
 const priorityConfig: Record<Task['priority'], { color: string; icon: typeof AlertCircle | null }> = {
   critical: { color: 'text-error dark:text-[#fa7a7a] border-error dark:border-[#fa7a7a]', icon: AlertCircle },
@@ -41,8 +44,15 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
   onDragStart: (id: string) => void;
   onDragEnd: () => void;
 }) {
+  const { t } = useTranslation();
+  const { highlightQuery } = useApp();
+  const columns = getColumns(t);
   const pConfig = priorityConfig[task.priority];
   const PrioIcon = pConfig.icon;
+  const isHighlighted = highlightQuery && (
+    task.title.toLowerCase().includes(highlightQuery.toLowerCase()) ||
+    task.description.toLowerCase().includes(highlightQuery.toLowerCase())
+  );
 
   return (
       <article
@@ -60,6 +70,7 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
           'hover:-translate-x-px hover:-translate-y-px hover:shadow-hard dark:hover:shadow-[4px_4px_0px_0px_#a8a6ff]',
           'transition-all duration-150 cursor-grab active:cursor-grabbing',
           isDragging ? 'opacity-40 border-dashed' : '',
+          isHighlighted ? 'ring-[3px] ring-[var(--color-primary)] dark:ring-[var(--color-primary-fixed-dim-dark)] bg-primary/10 dark:bg-[var(--color-primary-fixed-dim-dark)]/10 shadow-[0_0_12px_var(--color-primary)] dark:shadow-[0_0_12px_var(--color-primary-fixed-dim-dark)] animate-pulse' : '',
         ].join(' ')}
         aria-label={`Task: ${task.title}`}
       >
@@ -80,12 +91,12 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
                 </button>
               }
               items={[
-                { id: 'edit', label: 'Edit', icon: <Edit3 size={12} /> },
+                { id: 'edit', label: t('common.edit'), icon: <Edit3 size={12} /> },
                 ...columns
                   .filter(c => c.id !== task.status)
-                  .map(c => ({ id: `move-${c.id}`, label: `Move to ${c.label}`, icon: <div className={`w-2 h-2 rounded-full ${c.dotColor}`} /> })),
+                  .map(c => ({ id: `move-${c.id}`, label: `${t('kanban.move_to')} ${c.label}`, icon: <div className={`w-2 h-2 rounded-full ${c.dotColor}`} /> })),
                 { id: 'divider', label: '', divider: true },
-                { id: 'delete', label: 'Delete', icon: <Trash2 size={12} />, danger: true },
+                { id: 'delete', label: t('common.delete'), icon: <Trash2 size={12} />, danger: true },
               ]}
               onSelect={id => {
                 if (id === 'edit') onEdit(task);
@@ -139,7 +150,7 @@ function TaskCard({ task, projectName, onEdit, onDelete, onMove, isDragging, onD
 // KANBAN COLUMN
 // ============================================
 function KanbanCol({ col, tasks, projectMap, onEdit, onDelete, onMove, onAdd, onDropTask, draggedTaskId, isDragOver, onDragOverCol, onTaskDragStart, onTaskDragEnd }: {
-  col: typeof columns[number];
+  col: { id: TaskStatus; label: string; color: string; dotColor: string; shadowColor: string };
   tasks: Task[];
   projectMap: Map<string, string>;
   onEdit: (t: Task) => void;
@@ -153,6 +164,7 @@ function KanbanCol({ col, tasks, projectMap, onEdit, onDelete, onMove, onAdd, on
   onTaskDragStart: (id: string) => void;
   onTaskDragEnd: () => void;
 }) {
+  const { t } = useTranslation();
   const listRef = useRef<HTMLDivElement>(null);
   const [dropIndex, setDropIndex] = useState(-1);
 
@@ -234,7 +246,7 @@ function KanbanCol({ col, tasks, projectMap, onEdit, onDelete, onMove, onAdd, on
       >
         {tasks.length === 0 && !draggedTaskId ? (
           <div className="text-center py-8">
-            <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">No tasks</p>
+            <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{t('kanban.no_tasks')}</p>
           </div>
         ) : (
           <>
@@ -279,6 +291,8 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
   onClose: () => void;
   onSave: (t: Task) => void;
 }) {
+  const { t } = useTranslation();
+  const columns = getColumns(t);
   const [form, setForm] = useState({ ...defaultTask });
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -292,14 +306,18 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
         title: task.title, description: task.description,
         status: task.status, priority: task.priority,
         tags: task.tags.join(', '), dueDate: task.dueDate ?? '',
-        projectId: task.projectId,
+        projectId: task.projectId || (projects.length > 0 ? projects[0].id : ''),
       });
     } else {
-      setForm({ ...defaultTask, status: defaultStatus });
+      setForm({
+        ...defaultTask, status: defaultStatus,
+        projectId: projects.length > 0 ? projects[0].id : '',
+      });
     }
-  }, [task, open, defaultStatus]);
+  }, [task, open, defaultStatus, projects]);
 
   function handleSubmit() {
+    if (!form.projectId) return;
     const now = new Date().toISOString();
     onSave({
       id: task?.id ?? `task-${Date.now()}`,
@@ -320,38 +338,41 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
     <Modal
       open={open}
       onClose={onClose}
-      title={task ? 'Edit Task' : 'New Task'}
+      title={task ? t('kanban.edit_task') : t('kanban.new_task')}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!form.title}>
-            {task ? 'Save' : 'Create Task'}
+            {task ? t('common.save') : t('kanban.create_task')}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
-        <Input label="Task Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="What needs to be done?" />
+        <Input label={t('kanban.task_title_label')} value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={t('kanban.task_title_placeholder')} />
         <div className="flex flex-col gap-1">
-          <label className="font-mono text-xs uppercase tracking-wide text-on-surface dark:text-[#e5e1ea]">Description</label>
-          <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Task details..." className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] px-3 py-2 font-body text-body-sm shadow-hard-sm focus:outline-none focus:border-[var(--color-primary-fixed-dim-light)] resize-none" />
+          <label className="font-mono text-xs uppercase tracking-wide text-on-surface dark:text-[#e5e1ea]">{t('kanban.desc_label')}</label>
+          <textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={t('kanban.desc_placeholder')} className="border-2 border-on-surface dark:border-[#a8a6ff] bg-surface dark:bg-[#252533] text-on-surface dark:text-[#e5e1ea] px-3 py-2 font-body text-body-sm shadow-hard-sm focus:outline-none focus:border-[var(--color-primary-fixed-dim-light)] resize-none" />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Select label="Status" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as TaskStatus }))} options={columns.map(c => ({ value: c.id, label: c.label }))} />
-          <Select label="Priority" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as Task['priority'] }))} options={[{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'critical', label: 'Critical' }]} />
+          <Select label={t('kanban.status_label')} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as TaskStatus }))} options={columns.map(c => ({ value: c.id, label: c.label }))} />
+          <Select label={t('kanban.priority_label')} value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as Task['priority'] }))} options={[{ value: 'low', label: t('projects.priority_low') }, { value: 'medium', label: t('projects.priority_medium') }, { value: 'high', label: t('projects.priority_high') }, { value: 'critical', label: t('projects.priority_critical') }]} />
         </div>
-        <Select
-          label="Project"
-          value={form.projectId}
-          onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))}
-          options={[
-            { value: '', label: '— No project —' },
-            ...projects.map(p => ({ value: p.id, label: p.name })),
-          ]}
-        />
+        {projects.length === 0 ? (
+          <div className="border-2 border-dashed border-on-surface/30 dark:border-[#464552]/30 p-4 text-center">
+            <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{t('kanban.no_projects_message')}</p>
+          </div>
+        ) : (
+          <Select
+            label={t('kanban.project_label')}
+            value={form.projectId}
+            onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))}
+            options={projects.map(p => ({ value: p.id, label: p.name }))}
+          />
+        )}
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Tags (comma separated)" value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} placeholder="ui, bug, feat" />
-          <Input label="Due Date" type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} />
+          <Input label={t('kanban.tags_label')} value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} placeholder={t('kanban.tags_placeholder')} />
+          <Input label={t('kanban.due_date_label')} type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} />
         </div>
       </div>
     </Modal>
@@ -362,6 +383,8 @@ function TaskModal({ open, task, defaultStatus, onClose, onSave }: {
 // KANBAN PAGE
 // ============================================
 export function KanbanPage() {
+  const { t } = useTranslation();
+  const columns = getColumns(t);
   const { addToast, showSaved, dataVersion, requireAuth, pushProjectAfterSave, bumpDataVersion, pushTaskAfterSave, deleteRemoteTask } = useApp();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -417,7 +440,7 @@ export function KanbanPage() {
       setModalOpen(false);
       setEditingTask(null);
       showSaved();
-      addToast({ message: `Task "${task.title}" saved`, type: 'success' });
+      addToast({ message: `Task "${task.title}" ${t('kanban.toast_saved')}`, type: 'success' });
     });
   }
 
@@ -429,7 +452,7 @@ export function KanbanPage() {
       await deleteRemoteTask(id);
       if (task?.projectId) await updateProjectStats(task.projectId);
       setTasks(prev => prev.filter(t => t.id !== id));
-      addToast({ message: 'Task deleted', type: 'info' });
+      addToast({ message: t('kanban.toast_deleted'), type: 'info' });
     });
   }
 
@@ -621,9 +644,9 @@ export function KanbanPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 mb-3 md:mb-6">
         <div>
-          <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">Kanban Board</h1>
+          <h1 className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">{t('kanban.title')}</h1>
           <p className="font-body text-body-sm text-on-surface-variant dark:text-[#c8c4d4] mt-1">
-            {filteredTasks.length} tasks across {columns.length} stages
+            {filteredTasks.length} {t('kanban.tasks_across')} {columns.length} {t('kanban.stages')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -631,7 +654,7 @@ export function KanbanPage() {
             value={selectedProjectId}
             onChange={e => setSelectedProjectId(e.target.value)}
             options={[
-              { value: 'all', label: 'All Projects' },
+              { value: 'all', label: t('kanban.all_projects') },
               ...projects.filter(p => p.status !== 'archived').map(p => ({ value: p.id, label: p.name }))
             ]}
           />
@@ -640,7 +663,7 @@ export function KanbanPage() {
             icon={<Plus size={14} />}
             onClick={() => handleAdd('todo')}
           >
-            Add Task
+            {t('kanban.add_task')}
           </Button>
         </div>
       </div>
