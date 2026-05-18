@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Zap, ArrowRight, BookOpen, Play, ChevronDown, Sun, Moon } from 'lucide-react';
+import { Zap, ArrowRight, BookOpen, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useApp } from '../store/AppContext';
+import { useTranslation } from '../translations';
 
 const techStack = ['REACT', 'TYPESCRIPT', 'TAILWIND', 'NEXT.JS', 'GRAPHQL', 'POSTGRES', 'INDEXEDDB', 'VITE', 'RECHARTS', 'PWA'];
 
@@ -63,7 +64,8 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onEnter }: LandingPageProps) {
-  const { theme, toggleTheme } = useApp();
+  const { theme, settings, toggleTheme } = useApp();
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -85,13 +87,13 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             <div className="w-7 h-7 md:w-8 md:h-8 bg-primary dark:bg-[var(--color-primary-dark)] border-2 border-on-surface dark:border-[#a8a6ff] flex items-center justify-center shadow-[2px_2px_0px_0px_#1b1b22] dark:shadow-[2px_2px_0px_0px_#a8a6ff]">
               <Zap size={13} className="text-white" />
             </div>
-            <span className="font-headline font-bold text-on-surface dark:text-[#e5e1ea] text-sm md:text-lg">LabsYusJuL</span>
+            <span className="font-headline font-bold text-on-surface dark:text-[#e5e1ea] text-sm md:text-lg">{t('landing.brand')}</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1 font-mono text-xs" aria-label="Main navigation">
-            {['Journey', 'Mantras', 'Philosophy', 'About'].map(item => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="px-3 py-2 text-on-surface-variant dark:text-[#c8c4d4] hover:text-on-surface dark:hover:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#1e1e2a] border-2 border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-all duration-150 min-h-[44px] flex items-center">
-                {item}
+            {[{label: t('landing.nav_journey'), anchor: 'journey'},{label: t('landing.nav_mantras'), anchor: 'mantras'},{label: t('landing.nav_philosophy'), anchor: 'philosophy'},{label: t('landing.nav_about'), anchor: 'about'}].map(item => (
+              <a key={item.anchor} href={`#${item.anchor}`} className="px-3 py-2 text-on-surface-variant dark:text-[#c8c4d4] hover:text-on-surface dark:hover:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#1e1e2a] border-2 border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-all duration-150 min-h-[44px] flex items-center">
+                {item.label}
               </a>
             ))}
           </nav>
@@ -99,18 +101,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              aria-label={theme === 'light' ? t('topbar.switch_theme') : t('topbar.switch_theme_light')}
               className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center border-2 border-on-surface dark:border-[#a8a6ff] hover:bg-surface-container dark:hover:bg-[#1e1e2a] shadow-[2px_2px_0px_0px_#1b1b22] dark:shadow-[2px_2px_0px_0px_#a8a6ff] transition-all duration-150"
             >
               {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
-
-            <button
-              onClick={onEnter}
-              className="hidden md:flex items-center gap-2 px-4 py-2 bg-primary dark:bg-[var(--color-primary-dark)] text-white border-2 border-on-surface dark:border-[#a8a6ff] font-mono text-xs font-bold shadow-[4px_4px_0px_0px_#1b1b22] dark:shadow-[4px_4px_0px_0px_#a8a6ff] hover:shadow-[6px_6px_0px_0px_#1b1b22] dark:hover:shadow-[6px_6px_0px_0px_#a8a6ff] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-150 min-h-[44px]"
-            >
-              <Play size={12} />
-              ENTER LABSYUSJUL
             </button>
 
             <button
@@ -125,18 +119,12 @@ export function LandingPage({ onEnter }: LandingPageProps) {
 
         {mobileMenuOpen && (
           <div className="md:hidden border-t-2 border-on-surface dark:border-[#464552] bg-surface dark:bg-[#0e0e18] px-4 py-3 space-y-1 animate-[pop_150ms_ease-out]">
-            {['Journey', 'Mantras', 'Philosophy', 'About'].map(item => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="block px-3 py-2.5 font-mono text-xs text-on-surface dark:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#1e1e2a] min-h-[44px] flex items-center border border-transparent hover:border-on-surface dark:hover:border-[#464552]">
-                {item}
+            {[{label: t('landing.nav_journey'), anchor: 'journey'},{label: t('landing.nav_mantras'), anchor: 'mantras'},{label: t('landing.nav_philosophy'), anchor: 'philosophy'},{label: t('landing.nav_about'), anchor: 'about'}].map(item => (
+              <a key={item.anchor} href={`#${item.anchor}`} className="block px-3 py-2.5 font-mono text-xs text-on-surface dark:text-[#e5e1ea] hover:bg-surface-container dark:hover:bg-[#1e1e2a] min-h-[44px] flex items-center border border-transparent hover:border-on-surface dark:hover:border-[#464552]">
+                {item.label}
               </a>
             ))}
-            <button
-              onClick={onEnter}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-2 bg-primary text-white border-2 border-on-surface dark:border-[#a8a6ff] font-mono text-xs font-bold shadow-hard-sm min-h-[44px]"
-            >
-              <Zap size={14} />
-              &gt; ENTER LABSYUSJUL
-            </button>
+
           </div>
         )}
       </header>
@@ -152,33 +140,21 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         <div className="absolute bottom-20 left-1/3 w-3 h-3 bg-[#84cc16] pointer-events-none" aria-hidden="true" />
 
         <div className="relative z-10 max-w-5xl w-full text-center flex flex-col items-center gap-4 md:gap-6">
-          <div className="inline-flex items-center gap-2 font-mono text-xs bg-surface dark:bg-[#1e1e2a] border-2 border-on-surface dark:border-[#a8a6ff] px-4 py-2 shadow-[2px_2px_0px_0px_#1b1b22] dark:shadow-[2px_2px_0px_0px_#a8a6ff]">
-            <span className="w-2 h-2 rounded-full bg-[#84cc16] animate-pulse" />
-            [ SYSTEM STATUS: ONLINE ]
-          </div>
 
           <h1 className="font-headline font-bold leading-tight text-on-surface dark:text-[#e5e1ea]">
             <span className="block text-[clamp(2rem,8vw,5rem)] leading-none tracking-tight mb-1 md:mb-2">
-              Write Code.
+              {t('landing.hero_line1')}
             </span>
             <span className="inline-block text-[clamp(2rem,8vw,5rem)] leading-none tracking-tight px-3 md:px-4 py-0.5 md:py-1 bg-[#ffe086] dark:bg-[#574500] border-2 border-on-surface dark:border-[#a8a6ff] shadow-[6px_6px_0px_0px_#1b1b22] dark:shadow-[6px_6px_0px_0px_#a8a6ff] transform -rotate-1 mx-2">
-              Break Things.
+              {t('landing.hero_line2')}
             </span>
             <span className="block text-[clamp(2rem,8vw,5rem)] leading-none tracking-tight mt-1 md:mt-2">
-              Learn. Repeat.
+              {t('landing.hero_line3')}
             </span>
           </h1>
 
-          <div className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] -mt-3">
-            Tulis kode. Rusak sesuatu. Belajar. Ulangi.
-          </div>
-
           <p className="font-body text-body-sm md:text-body-lg text-on-surface-variant dark:text-[#c8c4d4] max-w-2xl bg-surface dark:bg-[#1e1e2a] border-2 border-on-surface dark:border-[#464552] px-4 py-3 md:px-6 md:py-4 shadow-[4px_4px_0px_0px_#1b1b22] dark:shadow-[4px_4px_0px_0px_#464552]">
-            Every line you write today builds the developer you become tomorrow.
-          </p>
-
-          <p className="font-body text-xs text-on-surface-variant dark:text-[#c8c4d4] -mt-3">
-            Setiap baris yang kau tulis hari ini membangun dirimu di masa depan.
+            {t('landing.hero_desc')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full sm:w-auto">
@@ -187,19 +163,19 @@ export function LandingPage({ onEnter }: LandingPageProps) {
               className="flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-primary dark:bg-[var(--color-primary-dark)] text-white border-2 border-on-surface dark:border-[#a8a6ff] font-mono text-sm font-bold shadow-[6px_6px_0px_0px_#1b1b22] dark:shadow-[6px_6px_0px_0px_#a8a6ff] hover:shadow-[8px_8px_0px_0px_#1b1b22] dark:hover:shadow-[8px_8px_0px_0px_#a8a6ff] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1.5 active:translate-y-1.5 active:shadow-none transition-all duration-150 min-h-[44px] md:min-h-[56px]"
             >
               <Zap size={16} />
-              &gt; START BUILDING
+              {'> ' + t('landing.start_building')}
             </button>
             <a
               href="#"
               className="flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-surface dark:bg-[#1e1e2a] text-on-surface dark:text-[#e5e1ea] border-2 border-on-surface dark:border-[#a8a6ff] font-mono text-sm font-bold shadow-[6px_6px_0px_0px_#1b1b22] dark:shadow-[6px_6px_0px_0px_#a8a6ff] hover:shadow-[8px_8px_0px_0px_#1b1b22] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1.5 active:translate-y-1.5 active:shadow-none transition-all duration-150 min-h-[44px] md:min-h-[56px]"
             >
               <BookOpen size={16} />
-              MY JOURNEY
+              {t('landing.my_journey')}
             </a>
           </div>
 
           <div className="flex flex-col items-center gap-1 mt-4 text-on-surface-variant dark:text-[#c8c4d4]">
-            <span className="font-mono text-xs">SCROLL TO EXPLORE</span>
+            <span className="font-mono text-xs">{t('landing.scroll_to_explore')}</span>
             <ChevronDown size={16} className="animate-bounce" />
           </div>
         </div>
@@ -224,8 +200,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
             {stats.map((stat, i) => (
               <div key={stat.labelEn} className={`flex flex-col items-center justify-center py-4 px-2 md:py-10 md:px-4 bg-surface dark:bg-[#1e1e2a] text-center ${i < stats.length - 1 ? 'border-r-2 border-on-surface dark:border-[#a8a6ff]' : ''} ${i === 1 ? 'border-b-2 md:border-b-0 border-on-surface dark:border-[#a8a6ff]' : ''}`}>
                 <p className="font-headline font-bold text-[1.35rem] md:text-[2.5rem] leading-none text-primary dark:text-[var(--color-primary-fixed-dim-dark)] mb-1 md:mb-2">{stat.value}</p>
-                <p className="font-mono text-[9px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#c8c4d4]">{stat.labelEn}</p>
-                <p className="font-mono text-[8px] md:text-[10px] text-on-surface-variant/60 dark:text-[#c8c4d4]/60 mt-0.5">{stat.labelId}</p>
+                <p className="font-mono text-[9px] md:text-xs uppercase tracking-widest text-on-surface-variant dark:text-[#c8c4d4]">{settings.language === 'id' ? stat.labelId : stat.labelEn}</p>
               </div>
             ))}
           </div>
@@ -237,11 +212,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between border-b-2 border-on-surface dark:border-[#464552] pb-4 mb-6 md:mb-12">
             <div>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-1">[ CORE MANTRAS ]</p>
               <h2 id="mantras-heading" className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea]">
-                Principles to build by.
+                {t('landing.mantras_title')}
               </h2>
-              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-1">Prinsip yang menuntun setiap langkah.</p>
+              <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-1">{t('landing.mantras_sub')}</p>
             </div>
             <span className="hidden md:block font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">V_1.0.0</span>
           </div>
@@ -256,16 +230,15 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                   <span className="font-mono text-xs md:text-xl text-on-surface dark:text-[#e5e1ea]">{feat.icon}</span>
                 </div>
 
-                <h3 className="font-headline font-bold text-sm md:text-headline-sm text-on-surface dark:text-[#e5e1ea] mb-1 md:mb-3">{feat.title}</h3>
-                <p className="font-body text-[11px] md:text-body-md text-on-surface-variant dark:text-[#c8c4d4]">{feat.descEn}</p>
-                <p className="font-body text-[10px] md:text-xs text-on-surface-variant/60 dark:text-[#c8c4d4]/60 mt-1 flex-grow">{feat.descId}</p>
+                <h3 className="font-headline font-bold text-sm md:text-headline-sm text-on-surface dark:text-[#e5e1ea] mb-1 md:mb-3">{t('landing.feature_' + feat.id + '_title')}</h3>
+                <p className="font-body text-[11px] md:text-body-md text-on-surface-variant dark:text-[#c8c4d4]">{settings.language === 'id' ? feat.descId : feat.descEn}</p>
 
                 <div className="mt-3 md:mt-6 pt-2 md:pt-4 border-t-2 border-on-surface dark:border-[#464552] flex items-center justify-between">
                   <button
                     onClick={onEnter}
                     className="font-mono text-xs text-on-surface dark:text-[#e5e1ea] hover:text-primary dark:hover:text-[var(--color-primary-fixed-dim-dark)] transition-colors flex items-center gap-2"
                   >
-                    &gt; EXPLORE <ArrowRight size={12} />
+                    {'> ' + t('landing.explore')} <ArrowRight size={12} />
                   </button>
                 </div>
               </article>
@@ -277,11 +250,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
       {/* ── PHILOSOPHY ── */}
       <section id="philosophy" className="w-full py-8 md:py-20 px-4 md:px-8 bg-surface-container-low dark:bg-[#12121a] border-b-2 border-on-surface dark:border-[#a8a6ff]" aria-labelledby="philosophy-heading">
         <div className="max-w-7xl mx-auto">
-          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-2">[ PHILOSOPHY ]</p>
           <h2 id="philosophy-heading" className="font-headline font-bold text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-[#e5e1ea] mb-2">
-            Wisdom from the journey.
+            {t('landing.philosophy_title')}
           </h2>
-          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-4 md:mb-12">Kebijaksanaan dari setiap perjalanan.</p>
+          <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mb-4 md:mb-12">{t('landing.philosophy_sub')}</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
             {[
               {
@@ -311,8 +283,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
                   <span className="font-mono text-xs md:text-sm font-bold text-white dark:text-[#0e0e18]">{item.step}</span>
                 </div>
                 <h3 className="font-headline font-bold text-sm md:text-headline-sm text-on-surface dark:text-[#e5e1ea] mb-1 md:mb-3">{item.title}</h3>
-                <p className="font-body text-[11px] md:text-body-md text-on-surface-variant dark:text-[#c8c4d4]">{item.en}</p>
-                <p className="font-body text-[10px] md:text-xs text-on-surface-variant/60 dark:text-[#c8c4d4]/60 mt-1">{item.id}</p>
+                <p className="font-body text-[11px] md:text-body-md text-on-surface-variant dark:text-[#c8c4d4]">{settings.language === 'id' ? item.id : item.en}</p>
               </div>
             ))}
           </div>
@@ -322,42 +293,53 @@ export function LandingPage({ onEnter }: LandingPageProps) {
       {/* ── CTA BANNER ── */}
       <section id="about" className="w-full py-12 md:py-20 px-4 md:px-8 bg-on-surface dark:bg-[var(--color-primary-dark)] border-b-2 border-on-surface dark:border-[#a8a6ff]" aria-label="Call to action">
         <div className="max-w-5xl mx-auto text-center flex flex-col items-center gap-4 md:gap-6">
-          <div className="font-mono text-[10px] md:text-xs text-surface/60 dark:text-white/60 uppercase tracking-widest">[ Ready to begin? ]</div>
           <h2 className="font-headline font-bold text-[clamp(1.5rem,6vw,3.5rem)] leading-tight text-surface dark:text-white">
-            Your journey.<br />Your pace. Your masterpiece.
+            {t('landing.cta_title')}
           </h2>
           <p className="font-body text-body-sm md:text-body-lg text-surface/70 dark:text-white/70 max-w-xl">
-            Every expert was once a beginner. Keep building.
+            {t('landing.cta_desc')}
           </p>
-          <p className="font-body text-xs text-surface/50 dark:text-white/50 -mt-2 md:-mt-3">
-            Setiap ahli dulu pernah jadi pemula. Teruslah berkarya.
-          </p>
-          <button
-            onClick={onEnter}
-            className="flex items-center gap-3 px-6 py-3 md:px-10 md:py-5 bg-[#ffe086] text-[#1b1b22] border-2 border-surface dark:border-white font-mono text-sm font-bold shadow-[6px_6px_0px_0px_rgba(255,255,255,0.4)] hover:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.4)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1.5 active:translate-y-1.5 active:shadow-none transition-all duration-150 min-h-[44px] md:min-h-[60px]"
-          >
-            <Zap size={18} />
-            &gt; ENTER LABSYUSJUL
-          </button>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="w-full bg-surface dark:bg-[#0e0e18] border-t-2 border-on-surface dark:border-[#a8a6ff] px-4 md:px-8 py-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-primary dark:bg-[var(--color-primary-dark)] border-2 border-on-surface dark:border-[#a8a6ff] flex items-center justify-center">
-              <Zap size={10} className="text-white" />
+      <footer className="relative w-full bg-surface dark:bg-[#0e0e18] border-t-2 border-on-surface dark:border-[#a8a6ff] overflow-hidden">
+        <div className="absolute inset-0 dot-grid opacity-20 dark:opacity-10" />
+        <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+          {/* Row 1: Brand + Tagline */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8 pb-6 md:pb-8 border-b-2 border-on-surface/20 dark:border-[#464552]/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary dark:bg-[var(--color-primary-dark)] border-2 border-on-surface dark:border-[#a8a6ff] flex items-center justify-center shadow-hard dark:shadow-[3px_3px_0px_0px_#a8a6ff]">
+                <Zap size={16} className="text-white" />
+              </div>
+              <div>
+                <span className="font-headline font-bold text-lg text-on-surface dark:text-[#e5e1ea]">FutureStack</span>
+                <p className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] mt-0.5">Build. Break. Learn. Repeat.</p>
+              </div>
             </div>
-            <span className="font-mono text-xs font-bold text-on-surface dark:text-[#e5e1ea]">© 2026 LABSYUSJUL // KEEP BUILDING</span>
+            <span className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4]">{t('landing.footer')}</span>
           </div>
-          <nav className="flex gap-2 flex-wrap justify-center" aria-label="Footer navigation">
-            {['System Status', 'Journey', 'Philosophy', 'About'].map(item => (
-              <a key={item} href={`#${item === 'System Status' ? 'journey' : item.toLowerCase()}`} className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] hover:text-on-surface dark:hover:text-[#e5e1ea] px-2 py-1 hover:underline min-h-[44px] flex items-center">
-                {item}
+
+          {/* Row 2: Nav + Social */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <nav className="flex gap-2 flex-wrap justify-center" aria-label="Footer navigation">
+              {[{label: t('landing.nav_journey'), anchor: 'journey'},{label: t('landing.nav_philosophy'), anchor: 'philosophy'},{label: t('landing.nav_about'), anchor: 'about'}].map(item => (
+                <a key={item.anchor} href={`#${item.anchor}`} className="font-mono text-xs text-on-surface-variant dark:text-[#c8c4d4] hover:text-primary dark:hover:text-[var(--color-primary-fixed-dim-dark)] px-3 py-1.5 border border-transparent hover:border-on-surface dark:hover:border-[#464552] transition-all duration-150 min-h-[44px] flex items-center">
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+
+            {/* Social links */}
+            <div className="flex items-center gap-2">
+              <a href="#" className="w-9 h-9 border-2 border-on-surface dark:border-[#464552] flex items-center justify-center hover:bg-primary dark:hover:bg-[var(--color-primary-dark)] hover:border-primary dark:hover:border-[var(--color-primary-fixed-dim-dark)] transition-all duration-150 group" aria-label="GitHub">
+                <span className="font-mono text-xs font-bold text-on-surface-variant dark:text-[#c8c4d4] group-hover:text-white">GH</span>
               </a>
-            ))}
-          </nav>
+              <a href="#" className="w-9 h-9 border-2 border-on-surface dark:border-[#464552] flex items-center justify-center hover:bg-primary dark:hover:bg-[var(--color-primary-dark)] hover:border-primary dark:hover:border-[var(--color-primary-fixed-dim-dark)] transition-all duration-150 group" aria-label="Twitter">
+                <span className="font-mono text-xs font-bold text-on-surface-variant dark:text-[#c8c4d4] group-hover:text-white">X</span>
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
