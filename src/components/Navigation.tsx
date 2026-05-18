@@ -1,4 +1,5 @@
 ﻿import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 // ============================================
@@ -71,33 +72,55 @@ interface DropdownProps {
   align?: 'left' | 'right';
 }
 
-export function Dropdown({ trigger, items, onSelect, align = 'right' }: DropdownProps) {
-  const [open, setOpen] = useState(false);
+export function Dropdown({ trigger, items, onSelect }: DropdownProps) {
+  const [menuState, setMenuState] = useState<{ top: number; right: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(() => setMenuState(null));
+  closeRef.current = () => setMenuState(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) {
+        closeRef.current();
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!menuState) return;
+    function handleReposition() {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setMenuState({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+      }
+    }
+    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener('resize', handleReposition);
+    return () => {
+      window.removeEventListener('scroll', handleReposition, true);
+      window.removeEventListener('resize', handleReposition);
+    };
+  }, [menuState]);
+
   return (
     <div ref={ref} className="relative inline-block">
-      <div onClick={() => setOpen(v => !v)} className="cursor-pointer">
+      <div ref={triggerRef} onClick={() => {
+        if (menuState) { setMenuState(null); return; }
+        if (triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          setMenuState({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+        }
+      }} className="cursor-pointer">
         {trigger}
       </div>
-      {open && (
-        <div
-          className={[
-            'absolute z-50 mt-1 min-w-[180px] bg-surface dark:bg-[#1e1e2a]',
-            'border-2 border-on-surface dark:border-[#a8a6ff] shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff]',
-            'animate-[pop_150ms_ease-out]',
-            align === 'right' ? 'right-0' : 'left-0',
-          ].join(' ')}
+      {menuState && createPortal(
+        <div ref={menuRef}
+          style={{ position: 'fixed', top: menuState.top, right: menuState.right, zIndex: 9999 }}
+          className="min-w-[180px] bg-surface dark:bg-[#1e1e2a] border-2 border-on-surface dark:border-[#a8a6ff] shadow-hard dark:shadow-[4px_4px_0px_0px_#a8a6ff] animate-[pop_150ms_ease-out]"
           role="menu"
         >
           {items.map(item => (
@@ -107,7 +130,7 @@ export function Dropdown({ trigger, items, onSelect, align = 'right' }: Dropdown
               <button
                 key={item.id}
                 role="menuitem"
-                onClick={() => { onSelect(item.id); setOpen(false); }}
+                onClick={() => { onSelect(item.id); setMenuState(null); }}
                 className={[
                   'w-full flex items-center gap-3 px-4 py-2.5 font-mono text-xs text-left',
                   'transition-colors duration-100 min-h-[44px]',
@@ -121,7 +144,8 @@ export function Dropdown({ trigger, items, onSelect, align = 'right' }: Dropdown
               </button>
             )
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
