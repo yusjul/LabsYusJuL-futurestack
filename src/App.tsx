@@ -20,15 +20,16 @@ import './index.css';
 // PAGE ROUTER
 // ============================================
 function PageRouter() {
-  const { activePage } = useApp();
+  const { activePage, settings } = useApp();
 
   const isFullHeight = activePage === 'notes' || activePage === 'kanban';
   const isOverflowHidden = activePage === 'notes';
+  const sidebarMargin = settings.sidebarCollapsed ? 'md:ml-16' : 'md:ml-56';
 
   return (
     <main
       id="main-content"
-      className={`flex-1 md:ml-56 ${isFullHeight ? 'flex flex-col' : ''} ${isOverflowHidden ? 'overflow-hidden' : 'overflow-y-auto'}`}
+      className={`flex-1 ${sidebarMargin} ${isFullHeight ? 'flex flex-col' : ''} ${isOverflowHidden ? 'overflow-hidden' : 'overflow-y-auto'}`}
     >
       {activePage === 'dashboard' && <DashboardPage />}
       {activePage === 'projects' && <ProjectsPage />}
@@ -83,19 +84,25 @@ function AppShell({ onGoToLanding }: AppShellProps) {
 // ROOT APP
 // ============================================
 function AppInner() {
-  const { authReady } = useApp();
+  const { authReady, user, freshStart } = useApp();
   const [dbReady, setDbReady] = useState(false);
   const [onLanding, setOnLanding] = useState(true);
   const landingDismissed = sessionStorage.getItem('futurestack-landing-dismissed') === 'true';
 
   useEffect(() => {
+    if (!authReady) return;
+    const skipSeed = !!user || freshStart;
+    if (skipSeed) {
+      setDbReady(true);
+      return;
+    }
     seedDatabase()
       .then(() => setDbReady(true))
       .catch(err => {
         console.error('DB seed failed:', err);
         setDbReady(true);
       });
-  }, []);
+  }, [user, freshStart, authReady]);
 
   function handleEnter() {
     setOnLanding(false);
